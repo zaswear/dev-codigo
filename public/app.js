@@ -75,7 +75,8 @@ const state = {
     commits: [],
     branch: 'main'
   },
-  terminalHistory: []
+  terminalHistory: [],
+  historyIdx: -1
 };
 
 /* ── Sincronización y Sesión ──────────────────────────────────────────────── */
@@ -345,11 +346,37 @@ function loadLesson(dayNum) {
     state.fs = { ...(lesson.initialState?.fs || {}) };
     state.git = { ...(lesson.initialState?.git || { initialized: false, staged: [], commits: [], branch: 'main' }) };
     state.terminalHistory = [];
+    state.historyIdx = -1;
     
     renderExplorerTree();
     
     const form = $('#terminal-form');
     form.addEventListener('submit', handleTerminalSubmit);
+    
+    const input = $('#terminal-input');
+    input.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (state.terminalHistory.length === 0) return;
+        if (state.historyIdx === -1) {
+          state.historyIdx = state.terminalHistory.length - 1;
+        } else if (state.historyIdx > 0) {
+          state.historyIdx--;
+        }
+        input.value = state.terminalHistory[state.historyIdx];
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (state.historyIdx !== -1) {
+          if (state.historyIdx < state.terminalHistory.length - 1) {
+            state.historyIdx++;
+            input.value = state.terminalHistory[state.historyIdx];
+          } else {
+            state.historyIdx = -1;
+            input.value = '';
+          }
+        }
+      }
+    });
     
     // Enfocar terminal al hacer clic en el panel
     $('#terminal-window').addEventListener('click', () => {
@@ -434,6 +461,10 @@ function handleTerminalSubmit(e) {
   input.value = '';
   
   if (!rawCmd) return;
+  
+  // Guardar en el historial de comandos
+  state.terminalHistory.push(rawCmd);
+  state.historyIdx = -1;
   
   // Agregar al historial visual
   printToTerminal(rawCmd, 'command');
