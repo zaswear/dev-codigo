@@ -1058,3 +1058,34 @@ html, body {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.7);
 }
+
+/* Variable Inspector Styling */
+.variable-inspector {
+  background: #181d2c;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow-x: auto;
+}
+.inspector-vars {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.var-badge {
+  background: rgba(56, 189, 248, 0.06);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #38bdf8;
+  white-space: nowrap;
+}
+.var-badge-val {
+  color: rgba(255, 255, 255, 0.8);
+  margin-left: 4px;
+}

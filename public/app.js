@@ -300,6 +300,59 @@ function renderMarkdown(text) {
   return typeof marked.parse === 'function' ? marked.parse(text) : marked(text);
 }
 
+/* Helper para el inspector de variables de Python/PHP */
+function updateVariableInspector() {
+  const box = $('#variable-inspector');
+  const list = $('#inspector-vars-list');
+  if (!box || !list) return;
+  
+  if (!state.currentCourse) {
+    box.style.display = 'none';
+    return;
+  }
+  
+  const isPython = state.currentCourse.id === 'python';
+  const isPhp = state.currentCourse.id === 'php';
+  if (!isPython && !isPhp) {
+    box.style.display = 'none';
+    return;
+  }
+  
+  box.style.display = 'flex';
+  const textarea = $('#editor-textarea');
+  if (!textarea) return;
+  const code = textarea.value;
+  
+  const vars = {};
+  const regex = isPython 
+    ? /^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^#\n]*)$/gm 
+    : /^\$([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^;\n]*);/gm;
+    
+  let match;
+  let iterations = 0;
+  while ((match = regex.exec(code)) !== null && iterations < 30) {
+    iterations++;
+    const name = match[1];
+    const val = match[2].trim();
+    if (/^(def|for|if|import|return|function|echo|while|class)\b/.test(val)) continue;
+    vars[name] = val;
+  }
+  
+  const keys = Object.keys(vars);
+  if (keys.length === 0) {
+    list.innerHTML = `<span style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.3)">no variables found</span>`;
+    return;
+  }
+  
+  list.innerHTML = keys.map(k => `
+    <span class="var-badge">
+      <span>${isPhp ? '$' : ''}${esc(k)}</span>
+      <span style="color:rgba(255,255,255,0.4)">=</span>
+      <span class="var-badge-val">${esc(vars[k])}</span>
+    </span>
+  `).join('');
+}
+
 /* Helper para generar el rack de servidores Ansible */
 function getAnsibleRackHtml() {
   const cid = state.currentCourse.id;
@@ -452,6 +505,14 @@ function loadLesson(dayNum) {
     const iconClass = state.currentCourse.id === 'python' ? 'ph-file-py' : 'ph-code';
     
     const rackHtml = getAnsibleRackHtml();
+    const isCodeLang = state.currentCourse.id === 'python' || state.currentCourse.id === 'php';
+    const inspectorHtml = isCodeLang ? `
+      <div class="variable-inspector" id="variable-inspector" style="display: none;">
+        <span class="inspector-title" style="font-family:var(--font-mono);font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-right:12px;">Variables:</span>
+        <div class="inspector-vars" id="inspector-vars-list"></div>
+      </div>
+    ` : '';
+
     workspace.innerHTML = `
       <div class="interactive-panel">
         <div class="editor-window">
@@ -466,6 +527,7 @@ function loadLesson(dayNum) {
             <textarea class="editor-textarea" id="editor-textarea" spellcheck="false">${esc(initCode)}</textarea>
           </div>
           ${rackHtml}
+          ${inspectorHtml}
           <div class="console-output">
             <div class="console-header">${STRINGS[state.lang].codeOutput}</div>
             <div class="console-body" id="console-body">> _</div>
@@ -474,15 +536,17 @@ function loadLesson(dayNum) {
       </div>
     `;
     
-    // Evento de numeración de líneas
+    // Evento de numeración de líneas y actualización de variables
     const textarea = $('#editor-textarea');
     const linesDiv = $('#editor-lines');
     textarea.addEventListener('input', () => {
       const linesCount = textarea.value.split('\n').length;
       linesDiv.innerHTML = Array.from({ length: Math.max(linesCount, 10) }, (_, i) => i + 1).join('<br>');
+      updateVariableInspector();
     });
     
     $('#btn-run-code').addEventListener('click', handleCodeRun);
+    updateVariableInspector();
   }
 }
 
