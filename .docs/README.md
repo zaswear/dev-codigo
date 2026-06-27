@@ -9,7 +9,7 @@ Para evitar sobrecargar los límites de tokens en una sola sesión, la implement
 ## Índice de Características por Ficheros
 
 ### 1. [ Playground e Interacción de Consola ](file:///home/zaswear/projects/dev-codigo/.docs/features/01_interactive_playground.md)
-- **Idea 1**: Historial de comandos en terminal simulada (Flechas ↑ / ↓).
+- **Idea 1** [x]: Historial de comandos en terminal simulada (Flechas ↑ / ↓).
 - **Idea 2**: Autocompletado inteligente con tabulador (Tab).
 - **Idea 3**: Visualizador interactivo de Git Graph.
 - **Idea 4**: Topología animada e interactiva para Ansible.
