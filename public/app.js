@@ -855,10 +855,86 @@ function checkTerminalLessonCompletion() {
   }
 }
 
+/* Helper para disparar partículas luminosas flotantes en el editor */
+function triggerCodeParticles() {
+  const container = $('.editor-window');
+  if (!container) return;
+  
+  const canvas = document.createElement('canvas');
+  canvas.style.position = 'absolute';
+  canvas.style.top = '0';
+  canvas.style.left = '0';
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.pointerEvents = 'none';
+  canvas.style.zIndex = '99';
+  container.style.position = 'relative';
+  container.appendChild(canvas);
+  
+  canvas.width = container.offsetWidth;
+  canvas.height = container.offsetHeight;
+  
+  const ctx = canvas.getContext('2d');
+  const particles = [];
+  const colors = ['#cc5a37', '#e05e3f', '#f59e0b', '#38bdf8'];
+  
+  for (let i = 0; i < 40; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * (canvas.height * 0.3),
+      radius: Math.random() * 3 + 1.5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vy: Math.random() * 3 + 2,
+      vx: (Math.random() - 0.5) * 1,
+      alpha: 1,
+      decay: Math.random() * 0.015 + 0.01
+    });
+  }
+  
+  let active = true;
+  
+  function animate() {
+    if (!active) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    let alive = false;
+    particles.forEach(p => {
+      p.y += p.vy;
+      p.x += p.vx;
+      p.alpha -= p.decay;
+      
+      if (p.alpha > 0 && p.y < canvas.height) {
+        alive = true;
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = p.color;
+        ctx.fill();
+        ctx.restore();
+      }
+    });
+    
+    if (alive) {
+      requestAnimationFrame(animate);
+    } else {
+      active = false;
+      canvas.remove();
+    }
+  }
+  
+  animate();
+}
+
 /* ── Validador del Editor de Código (Ansible, AAP, PHP, Python) ─────────────── */
 function handleCodeRun() {
   const code = $('#editor-textarea').value;
   const consoleBox = $('#console-body');
+  
+  // Disparar flujo de partículas luminosas
+  triggerCodeParticles();
   
   // Retroalimentación visual: LEDs parpadeando en naranja
   $$('.server-node').forEach(node => {
