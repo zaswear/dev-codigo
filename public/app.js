@@ -285,6 +285,20 @@ function renderDaysNav() {
   });
 }
 
+/* Helper para procesar Markdown de forma segura */
+function renderMarkdown(text) {
+  if (typeof marked === 'undefined') {
+    return esc(text)
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`(.*?)`/g, '<code>$1</code>')
+      .replace(/### (.*?)(<br>|$)/g, '<h3>$1</h3>')
+      .replace(/- (.*?)(<br>|$)/g, '<li>$1</li>');
+  }
+  return typeof marked.parse === 'function' ? marked.parse(text) : marked(text);
+}
+
 /* ── Cargar Lección ──────────────────────────────────────────────────────── */
 function loadLesson(dayNum) {
   state.currentDay = dayNum;
@@ -297,8 +311,9 @@ function loadLesson(dayNum) {
   $('#lesson-title').textContent = lesson.title[state.lang];
   
   // Render de teoría
+  const theoryBox = $('#theory-content');
   const markdownText = lesson.concept[state.lang] || '';
-  theoryBox.innerHTML = typeof marked.parse === 'function' ? marked.parse(markdownText) : marked(markdownText);
+  theoryBox.innerHTML = renderMarkdown(markdownText);
   
   // Render de práctica
   $('#practice-text').textContent = lesson.practice[state.lang];
