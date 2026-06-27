@@ -606,18 +606,40 @@ function renderExplorerTree() {
   }).join('');
 }
 
+/* Helper asíncrono para revelar texto letra a letra (Efecto Typewriter) */
+function typeText(element, text, speed = 8, onComplete = null, scrollContainer = null) {
+  element.textContent = '';
+  let i = 0;
+  const timer = setInterval(() => {
+    if (i < text.length) {
+      element.textContent += text[i];
+      i++;
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    } else {
+      clearInterval(timer);
+      if (onComplete) onComplete();
+    }
+  }, speed);
+}
+
 function printToTerminal(text, type = 'output') {
   const hist = $('#terminal-history');
   if (!hist) return;
   
   const line = document.createElement('div');
   line.className = `terminal-line ${type}`;
-  line.textContent = text;
   hist.appendChild(line);
   
   const win = $('#terminal-window');
-  win.scrollTop = win.scrollHeight;
-  renderGitGraph();
+  if (type === 'command') {
+    line.textContent = text;
+    if (win) win.scrollTop = win.scrollHeight;
+    renderGitGraph();
+  } else {
+    typeText(line, text, 8, () => renderGitGraph(), win);
+  }
 }
 
 function handleTerminalSubmit(e) {
@@ -1010,20 +1032,21 @@ function handleCodeRun() {
     output = `Compilación fallida: ${err.message}`;
   }
   
-    consoleBox.textContent = `> Ejecución de playbook terminada.\n\n` + output;
-    
-    // Quitar estado de ejecución parpadeante
-    $$('.server-node').forEach(node => {
-      node.classList.remove('running');
-    });
-    
-    if (success) {
-      // Activar luces verdes de estado
+    const finalMsg = `> Ejecución de playbook terminada.\n\n` + output;
+    typeText(consoleBox, finalMsg, 4, () => {
+      // Quitar estado de ejecución parpadeante
       $$('.server-node').forEach(node => {
-        node.classList.add('active');
+        node.classList.remove('running');
       });
-      completeDay(courseId, day);
-    }
+      
+      if (success) {
+        // Activar luces verdes de estado
+        $$('.server-node').forEach(node => {
+          node.classList.add('active');
+        });
+        completeDay(courseId, day);
+      }
+    }, consoleBox);
   }, 1000);
 }
 
