@@ -12,7 +12,7 @@ Para evitar sobrecargar los límites de tokens en una sola sesión, la implement
 - **Idea 1** [x]: Historial de comandos en terminal simulada (Flechas ↑ / ↓).
 - **Idea 2** [x]: Autocompletado inteligente con tabulador (Tab).
 - **Idea 3** [x]: Visualizador interactivo de Git Graph.
-- **Idea 4**: Topología animada e interactiva para Ansible.
+- **Idea 4** [x]: Topología animada e interactiva para Ansible.
 - **Idea 5**: Inspector de variables en vivo para Python y PHP.
 
 ### 2. [ Animaciones y Efectos Visuales ](file:///home/zaswear/projects/dev-codigo/.docs/features/02_animations_and_effects.md)
