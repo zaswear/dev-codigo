@@ -967,3 +967,50 @@ html, body {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* Git Graph Styling */
+.git-graph-bar {
+  background: #181d2c;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow-x: auto;
+}
+.git-graph-nodes {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.git-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+}
+.git-node.active-branch {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 700;
+}
+.git-node-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+.git-node-line {
+  color: rgba(255, 255, 255, 0.15);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+}

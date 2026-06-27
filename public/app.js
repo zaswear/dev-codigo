@@ -330,6 +330,9 @@ function loadLesson(dayNum) {
           <span class="explorer-title">${STRINGS[state.lang].explorerTitle}</span>
           <div class="explorer-files" id="explorer-files-list"></div>
         </div>
+        <div class="git-graph-bar" id="git-graph-bar" style="display: none;">
+          <div class="git-graph-nodes" id="git-graph-nodes"></div>
+        </div>
         <div class="terminal-window" id="terminal-window">
           <div class="terminal-history" id="terminal-history">
             <div class="terminal-line output">${STRINGS[state.lang].emptyTerminal}</div>
@@ -349,6 +352,7 @@ function loadLesson(dayNum) {
     state.historyIdx = -1;
     
     renderExplorerTree();
+    renderGitGraph();
     
     const form = $('#terminal-form');
     form.addEventListener('submit', handleTerminalSubmit);
@@ -431,6 +435,42 @@ function loadLesson(dayNum) {
 }
 
 /* ── Simulador de Terminal (Git / Ansible Shell) ─────────────────────────── */
+function renderGitGraph() {
+  const bar = $('#git-graph-bar');
+  const container = $('#git-graph-nodes');
+  if (!bar || !container) return;
+  
+  if (!state.git || !state.git.initialized) {
+    bar.style.display = 'none';
+    return;
+  }
+  
+  bar.style.display = 'flex';
+  
+  if (!state.git.commits || state.git.commits.length === 0) {
+    container.innerHTML = `<span style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.4)">no commits yet</span>`;
+    return;
+  }
+  
+  container.innerHTML = state.git.commits.map((c, idx) => {
+    const isLast = idx === state.git.commits.length - 1;
+    const activeCls = isLast ? 'active-branch' : '';
+    const branchLabel = isLast ? ` (${state.git.branch})` : '';
+    
+    const nodeHtml = `
+      <div class="git-node ${activeCls}">
+        <div class="git-node-dot"></div>
+        <span>${esc(c.id)}: ${esc(c.message)}${esc(branchLabel)}</span>
+      </div>
+    `;
+    
+    if (idx < state.git.commits.length - 1) {
+      return nodeHtml + `<span class="git-node-line"><i class="ph ph-arrow-right"></i></span>`;
+    }
+    return nodeHtml;
+  }).join('');
+}
+
 function renderExplorerTree() {
   const list = $('#explorer-files-list');
   if (!list) return;
@@ -461,6 +501,7 @@ function printToTerminal(text, type = 'output') {
   
   const win = $('#terminal-window');
   win.scrollTop = win.scrollHeight;
+  renderGitGraph();
 }
 
 function handleTerminalSubmit(e) {
