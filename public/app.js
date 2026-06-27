@@ -375,6 +375,15 @@ function loadLesson(dayNum) {
             input.value = '';
           }
         }
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        const val = input.value.trim().toLowerCase();
+        if (!val) return;
+        const commands = ['help', 'clear', 'touch', 'ls', 'git init', 'git status', 'git add', 'git commit', 'git branch', 'git checkout'];
+        const match = commands.find(c => c.startsWith(val));
+        if (match) {
+          input.value = match;
+        }
       }
     });
     
