@@ -32,7 +32,9 @@ const STRINGS = {
     backToCatalog: '← Volver al catálogo',
     terminalHelp: 'Escribe "help" para ver los comandos disponibles.',
     emptyTerminal: 'Consola inicializada.',
-    unlockedMsg: 'Nueva lección disponible'
+    unlockedMsg: 'Nueva lección disponible',
+    skipBtn: 'Omitir',
+    tourBtn: 'Tour Guide'
   },
   en: {
     welcome: 'Learn Coding Easily',
@@ -56,7 +58,9 @@ const STRINGS = {
     backToCatalog: '← Back to Catalog',
     terminalHelp: 'Type "help" to list available commands.',
     emptyTerminal: 'Console initialized.',
-    unlockedMsg: 'New lesson unlocked'
+    unlockedMsg: 'New lesson unlocked',
+    skipBtn: 'Skip',
+    tourBtn: 'Tour Guide'
   }
 };
 
@@ -209,6 +213,9 @@ function selectCourse(courseId) {
   $('#welcome-view').style.display = 'none';
   $('#course-view').style.display = 'flex';
   
+  const tourBtn = $('#btn-start-tour');
+  if (tourBtn) tourBtn.style.display = 'flex';
+  
   renderSidebar();
   loadLesson(dayToStart);
 }
@@ -241,6 +248,10 @@ function renderSidebar() {
     state.currentCourse = null;
     $('#course-view').style.display = 'none';
     $('#welcome-view').style.display = 'block';
+    
+    const tourBtn = $('#btn-start-tour');
+    if (tourBtn) tourBtn.style.display = 'none';
+    
     renderCoursesGrid();
   });
   
@@ -403,6 +414,131 @@ function getAnsibleRackHtml() {
   `;
 }
 
+/* Helper asíncrono para iniciar la guía interactiva (Tour Guide) */
+function startTour() {
+  const steps = [
+    {
+      target: '#sidebar',
+      title: { es: 'Cursos y Navegación', en: 'Courses & Navigation' },
+      desc: {
+        es: 'Usa la barra lateral para cambiar entre los diferentes cursos de programación y DevOps o para cerrar sesión.',
+        en: 'Use the sidebar to switch between different programming and DevOps courses or to log out.'
+      }
+    },
+    {
+      target: '.days-nav',
+      title: { es: 'Fases Diarias', en: 'Daily Phases' },
+      desc: {
+        es: 'Cada curso está dividido en días prácticos. Haz clic en ellos para ir progresando paso a paso.',
+        en: 'Each course is divided into practical days. Click on them to progress step-by-step.'
+      }
+    },
+    {
+      target: '.theory-panel',
+      title: { es: 'Teoría e Instrucciones', en: 'Theory & Instructions' },
+      desc: {
+        es: 'Aquí encontrarás los conceptos teóricos clave y la descripción de la práctica que debes completar.',
+        en: 'Here you will find key theoretical concepts and the description of the practice you must complete.'
+      }
+    },
+    {
+      target: '.interactive-panel',
+      title: { es: 'Playground Interactivo', en: 'Interactive Playground' },
+      desc: {
+        es: 'Escribe el código solicitado o ejecuta comandos de terminal aquí. ¡Usa el botón Ejecutar para validar tu progreso!',
+        en: 'Write the requested code or run terminal commands here. Use the Run button to validate your progress!'
+      }
+    }
+  ];
+  
+  // Quitar overlay antiguo si existe
+  const oldOverlay = $('#tour-overlay');
+  if (oldOverlay) oldOverlay.remove();
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'tour-overlay';
+  overlay.id = 'tour-overlay';
+  document.body.appendChild(overlay);
+  
+  const card = document.createElement('div');
+  card.className = 'tour-card';
+  overlay.appendChild(card);
+  
+  let currentStep = 0;
+  
+  function showStep(idx) {
+    $$('.tour-highlighted').forEach(el => el.classList.remove('tour-highlighted'));
+    
+    if (idx >= steps.length) {
+      localStorage.setItem('dc-tour-seen', 'true');
+      overlay.remove();
+      return;
+    }
+    
+    currentStep = idx;
+    const step = steps[idx];
+    const targetEl = $(step.target);
+    
+    if (!targetEl) {
+      showStep(idx + 1);
+      return;
+    }
+    
+    targetEl.classList.add('tour-highlighted');
+    
+    card.innerHTML = `
+      <div class="tour-header">
+        <span>${step.title[state.lang]}</span>
+        <span style="font-size:11px;color:rgba(255,255,255,0.4)">${idx + 1} / ${steps.length}</span>
+      </div>
+      <div class="tour-body">
+        ${step.desc[state.lang]}
+      </div>
+      <div class="tour-actions">
+        <button class="tour-btn skip" id="tour-skip-btn">${STRINGS[state.lang].skipBtn}</button>
+        <div class="tour-step-dots">
+          ${steps.map((_, sIdx) => `<div class="tour-dot ${sIdx === idx ? 'active' : ''}"></div>`).join('')}
+        </div>
+        <button class="tour-btn" id="tour-next-btn">${idx === steps.length - 1 ? (state.lang === 'es' ? 'Terminar' : 'Finish') : (state.lang === 'es' ? 'Siguiente' : 'Next')}</button>
+      </div>
+    `;
+    
+    positionTourCard(targetEl, card);
+    
+    $('#tour-skip-btn').addEventListener('click', () => {
+      localStorage.setItem('dc-tour-seen', 'true');
+      $$('.tour-highlighted').forEach(el => el.classList.remove('tour-highlighted'));
+      overlay.remove();
+    });
+    
+    $('#tour-next-btn').addEventListener('click', () => {
+      showStep(idx + 1);
+    });
+  }
+  
+  function positionTourCard(targetEl, cardEl) {
+    const rect = targetEl.getBoundingClientRect();
+    const cardWidth = 320;
+    
+    let left = rect.left + (rect.width - cardWidth) / 2;
+    let top = rect.bottom + 12;
+    
+    if (left < 16) left = 16;
+    if (left + cardWidth > window.innerWidth - 16) {
+      left = window.innerWidth - cardWidth - 16;
+    }
+    if (top + 180 > window.innerHeight - 16) {
+      top = rect.top - 180 - 12;
+    }
+    if (top < 16) top = 16;
+    
+    cardEl.style.left = `${left}px`;
+    cardEl.style.top = `${top}px`;
+  }
+  
+  showStep(0);
+}
+
 /* ── Cargar Lección ──────────────────────────────────────────────────────── */
 function loadLesson(dayNum) {
   state.currentDay = dayNum;
@@ -547,6 +683,11 @@ function loadLesson(dayNum) {
     
     $('#btn-run-code').addEventListener('click', handleCodeRun);
     updateVariableInspector();
+  }
+  
+  // Auto-tour para nuevos usuarios en el día 1
+  if (!localStorage.getItem('dc-tour-seen') && dayNum === 1) {
+    setTimeout(startTour, 500);
   }
 }
 
@@ -1227,6 +1368,12 @@ async function init() {
     authBtn.addEventListener('click', () => {
       location.href = '/api/auth/github?next=/';
     });
+  }
+  
+  // Evento botón de tour guide navbar
+  const tourStartBtn = $('#btn-start-tour');
+  if (tourStartBtn) {
+    tourStartBtn.addEventListener('click', startTour);
   }
   
   // Evento del modal de celebración
