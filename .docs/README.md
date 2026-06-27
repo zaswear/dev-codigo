@@ -11,7 +11,7 @@ Para evitar sobrecargar los límites de tokens en una sola sesión, la implement
 ### 1. [ Playground e Interacción de Consola ](file:///home/zaswear/projects/dev-codigo/.docs/features/01_interactive_playground.md)
 - **Idea 1** [x]: Historial de comandos en terminal simulada (Flechas ↑ / ↓).
 - **Idea 2** [x]: Autocompletado inteligente con tabulador (Tab).
-- **Idea 3**: Visualizador interactivo de Git Graph.
+- **Idea 3** [x]: Visualizador interactivo de Git Graph.
 - **Idea 4**: Topología animada e interactiva para Ansible.
 - **Idea 5**: Inspector de variables en vivo para Python y PHP.
 
