@@ -16,7 +16,7 @@ Para evitar sobrecargar los límites de tokens en una sola sesión, la implement
 - **Idea 5** [x]: Inspector de variables en vivo para Python y PHP.
 
 ### 2. [ Animaciones y Efectos Visuales ](file:///home/zaswear/projects/dev-codigo/.docs/features/02_animations_and_effects.md)
-- **Idea 6**: Efecto de escritura interactiva (Typewriter) en descripciones de consola.
+- **Idea 6** [x]: Efecto de escritura interactiva (Typewriter) en descripciones de consola.
 - **Idea 7**: Flujo visual de partículas luminosas al ejecutar código.
 - **Idea 8**: Animaciones de escala e iluminación al crear archivos (`touch`).
 - **Idea 9**: Simulación visual de teclado mecánico hundido (Keycaps).
