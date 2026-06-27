@@ -587,7 +587,7 @@ function renderGitGraph() {
   }).join('');
 }
 
-function renderExplorerTree() {
+function renderExplorerTree(newFilename = null) {
   const list = $('#explorer-files-list');
   if (!list) return;
   
@@ -602,7 +602,9 @@ function renderExplorerTree() {
     if (f.endsWith('.html')) icon = 'ph-file-html';
     if (f.endsWith('.css')) icon = 'ph-file-css';
     if (f.endsWith('.yml') || f.endsWith('.yaml')) icon = 'ph-file-code';
-    return `<span class="file-tab"><i class="ph ${icon}"></i> ${esc(f)}</span>`;
+    
+    const animClass = (newFilename && f === newFilename) ? 'file-created-anim' : '';
+    return `<span class="file-tab ${animClass}"><i class="ph ${icon}"></i> ${esc(f)}</span>`;
   }).join('');
 }
 
@@ -685,7 +687,7 @@ function handleTerminalSubmit(e) {
       return;
     }
     state.fs[filename] = '';
-    renderExplorerTree();
+    renderExplorerTree(filename);
     printToTerminal(`Creado archivo vacío: ${filename}`, 'output');
     
     // Validar Git Día 2 / Tarea 1: touch index.html
