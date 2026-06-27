@@ -300,6 +300,56 @@ function renderMarkdown(text) {
   return typeof marked.parse === 'function' ? marked.parse(text) : marked(text);
 }
 
+/* Helper para generar el rack de servidores Ansible */
+function getAnsibleRackHtml() {
+  const cid = state.currentCourse.id;
+  const day = state.currentDay;
+  
+  if (cid !== 'ansible' && cid !== 'aap') return '';
+  
+  let servers = [];
+  if (cid === 'ansible') {
+    if (day === 1) {
+      servers = [{ id: 'impresora1', label: 'impresora1 (192.168.1.100)' }];
+    } else {
+      servers = [
+        { id: 'impresora1', label: 'impresora1 (192.168.1.100)' },
+        { id: 'impresora2', label: 'impresora2 (192.168.1.101)' }
+      ];
+    }
+  } else if (cid === 'aap') {
+    if (day === 1) {
+      servers = [
+        { id: 'aap-controller', label: 'aap-controller (10.0.10.5)' },
+        { id: 'git-server', label: 'git-server (github.com)' }
+      ];
+    } else if (day === 2) {
+      servers = [
+        { id: 'aap-controller', label: 'aap-controller (10.0.10.5)' },
+        { id: 'impresora1', label: 'impresora1 (192.168.1.100)' },
+        { id: 'impresora2', label: 'impresora2 (192.168.1.101)' }
+      ];
+    } else {
+      servers = [
+        { id: 'aap-controller', label: 'aap-controller (10.0.10.5)' },
+        { id: 'load-balancer', label: 'load-balancer (nginx)' },
+        { id: 'impresora1', label: 'impresora1 (192.168.1.100)' }
+      ];
+    }
+  }
+  
+  return `
+    <div class="ansible-rack" id="ansible-rack">
+      ` + servers.map(s => `
+        <div class="server-node" id="srv-${s.id}">
+          <div class="server-led"></div>
+          <div class="server-label">${esc(s.label)}</div>
+        </div>
+      `).join('') + `
+    </div>
+  `;
+}
+
 /* ── Cargar Lección ──────────────────────────────────────────────────────── */
 function loadLesson(dayNum) {
   state.currentDay = dayNum;
@@ -401,6 +451,7 @@ function loadLesson(dayNum) {
     const extension = state.currentCourse.id === 'python' ? '.py' : (state.currentCourse.id === 'php' ? '.php' : '.yml');
     const iconClass = state.currentCourse.id === 'python' ? 'ph-file-py' : 'ph-code';
     
+    const rackHtml = getAnsibleRackHtml();
     workspace.innerHTML = `
       <div class="interactive-panel">
         <div class="editor-window">
@@ -414,6 +465,7 @@ function loadLesson(dayNum) {
             <div class="editor-line-numbers" id="editor-lines">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10</div>
             <textarea class="editor-textarea" id="editor-textarea" spellcheck="false">${esc(initCode)}</textarea>
           </div>
+          ${rackHtml}
           <div class="console-output">
             <div class="console-header">${STRINGS[state.lang].codeOutput}</div>
             <div class="console-body" id="console-body">> _</div>
@@ -722,15 +774,22 @@ function handleCodeRun() {
   const code = $('#editor-textarea').value;
   const consoleBox = $('#console-body');
   
-  consoleBox.innerHTML = `> Ejecutando validador...\n`;
+  // Retroalimentación visual: LEDs parpadeando en naranja
+  $$('.server-node').forEach(node => {
+    node.classList.add('running');
+    node.classList.remove('active');
+  });
   
-  const courseId = state.currentCourse.id;
-  const day = state.currentDay;
+  consoleBox.textContent = `> Conectando con los hosts de destino...\n> Transfiriendo archivos de configuración...\n> Ejecutando tareas de automatización...\n`;
   
-  let success = false;
-  let output = '';
-  
-  try {
+  setTimeout(() => {
+    const courseId = state.currentCourse.id;
+    const day = state.currentDay;
+    
+    let success = false;
+    let output = '';
+    
+    try {
     if (courseId === 'ansible') {
       if (day === 1) {
         // hosts.yml
@@ -887,11 +946,21 @@ function handleCodeRun() {
     output = `Compilación fallida: ${err.message}`;
   }
   
-  consoleBox.textContent += output;
-  
-  if (success) {
-    completeDay(courseId, day);
-  }
+    consoleBox.textContent = `> Ejecución de playbook terminada.\n\n` + output;
+    
+    // Quitar estado de ejecución parpadeante
+    $$('.server-node').forEach(node => {
+      node.classList.remove('running');
+    });
+    
+    if (success) {
+      // Activar luces verdes de estado
+      $$('.server-node').forEach(node => {
+        node.classList.add('active');
+      });
+      completeDay(courseId, day);
+    }
+  }, 1000);
 }
 
 /* ── Cambiar Idioma ──────────────────────────────────────────────────────── */

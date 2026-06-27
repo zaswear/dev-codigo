@@ -1012,5 +1012,49 @@ html, body {
   color: rgba(255, 255, 255, 0.15);
   font-size: 12px;
   display: flex;
+}
+
+/* Ansible Rack Styling */
+.ansible-rack {
+  background: #181d2c;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 10px 16px;
+  display: flex;
+  gap: 12px;
+}
+.server-node {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
   align-items: center;
+  gap: 8px;
+  transition: var(--transition);
+}
+.server-node.active {
+  background: rgba(16, 185, 129, 0.04);
+  border-color: var(--green);
+}
+.server-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4b5563;
+  transition: var(--transition);
+}
+.server-node.active .server-led {
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+}
+.server-node.running .server-led {
+  background: #f59e0b;
+  animation: pulse 1s infinite;
+}
+.server-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
 }
