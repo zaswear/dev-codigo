@@ -1,0 +1,10 @@
+{
+  "name": "dev-codigo",
+  "version": "1.0.0",
+  "description": "Bilingual interactive programming academy for Git, Ansible, AAP, PHP, and Python.",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
+}

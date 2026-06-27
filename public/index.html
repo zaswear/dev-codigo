@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dev-codigo · Academia Interactiva de Programación</title>
+<meta name="description" content="Aprende GIT, Ansible, AAP, PHP y Python interactuando directamente en el navegador con un terminal y playground simulado.">
+<!-- Google Fonts (Lora, Plus Jakarta Sans, Space Mono) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@300..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<!-- CSS Style Sheet -->
+<link rel="stylesheet" href="style.css">
+<!-- Phosphor Icons -->
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<!-- Marked.js Markdown Parser -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+  <!-- ── NAVBAR / TOPBAR ── -->
+  <header class="navbar">
+    <div class="brand" onclick="location.reload()">
+      <div class="brand-logo">
+        <i class="ph ph-brackets-angle ph-bold"></i>
+      </div>
+      <span id="navbar-brand-name">dev-<span class="brand-accent">codigo</span></span>
+    </div>
+    
+    <div class="nav-actions">
+      <!-- Selector de Idioma -->
+      <div class="lang-selector">
+        <button class="lang-btn active" data-lang="es">ES</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+      </div>
+      
+      <!-- Login / Perfil -->
+      <button class="btn-github" id="auth-action-btn">
+        <i class="ph ph-github-logo"></i> Entrar con GitHub
+      </button>
+    </div>
+  </header>
+
+  <!-- ── MAIN CONTAINER ── -->
+  <main class="main-layout">
+    
+    <!-- ════ SECCIÓN A: BIENVENIDA / CATÁLOGO ════ -->
+    <section class="welcome-panel" id="welcome-view">
+      <div class="welcome-hero" id="welcome-hero">
+        <!-- Rellenado dinámicamente por app.js -->
+      </div>
+      
+      <div class="courses-grid" id="courses-grid">
+        <!-- Rellenado dinámicamente por app.js -->
+      </div>
+    </section>
+
+    <!-- ════ SECCIÓN B: INTERFAZ DE CURSO (SIDEBAR + WORKSPACE) ════ -->
+    <section class="main-layout" id="course-view" style="display: none;">
+      <!-- Sidebar izquierdo de cursos -->
+      <aside class="sidebar" id="sidebar">
+        <!-- Rellenado dinámicamente por app.js -->
+      </aside>
+      
+      <!-- Panel de Contenido Principal -->
+      <div class="content-area">
+        <!-- Cabecera de Lección (Título + Días) -->
+        <div class="course-header">
+          <div class="course-header-left">
+            <h2 class="course-title" id="lesson-title">Lección</h2>
+          </div>
+          <nav class="days-nav" id="days-nav">
+            <!-- Días 1, 2, 3 rellenados dinámicamente -->
+          </nav>
+        </div>
+        
+        <!-- Zona de Trabajo Dividida -->
+        <div class="workspace">
+          <!-- Columna Izquierda: Teoría e Instrucción de Práctica -->
+          <div class="theory-panel">
+            <div class="theory-content" id="theory-content">
+              <!-- Cargado en Markdown -->
+            </div>
+            
+            <div class="practice-card">
+              <h4><i class="ph ph-lightning ph-bold"></i> Práctica de hoy</h4>
+              <p class="practice-text" id="practice-text">Escribe el código adecuado...</p>
+            </div>
+          </div>
+          
+          <!-- Columna Derecha: Consola / Editor Interactiva -->
+          <div class="workspace-panels" id="workspace-panels">
+            <!-- Cargado dinámicamente con Terminal o Editor por app.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── MODAL: DÍA COMPLETADO ── -->
+  <div class="modal-overlay" id="celebration-modal">
+    <div class="modal-card">
+      <div class="modal-icon">
+        <i class="ph ph-check-bold"></i>
+      </div>
+      <h3 class="modal-title">¡Día Completado!</h3>
+      <p class="modal-desc">Has completado la lección de hoy con éxito.</p>
+      <button class="modal-btn" id="modal-continue-btn">Siguiente Lección</button>
+    </div>
+  </div>
+
+  <!-- ── TOAST NOTIFICADOR ── -->
+  <div class="toast" id="toast"></div>
+
+  <!-- App logic -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
