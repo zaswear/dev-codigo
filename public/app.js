@@ -297,8 +297,8 @@ function loadLesson(dayNum) {
   $('#lesson-title').textContent = lesson.title[state.lang];
   
   // Render de teoría
-  const theoryBox = $('#theory-content');
-  theoryBox.innerHTML = marked(lesson.concept[state.lang]);
+  const markdownText = lesson.concept[state.lang] || '';
+  theoryBox.innerHTML = typeof marked.parse === 'function' ? marked.parse(markdownText) : marked(markdownText);
   
   // Render de práctica
   $('#practice-text').textContent = lesson.practice[state.lang];
