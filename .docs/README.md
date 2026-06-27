@@ -26,7 +26,7 @@ Para evitar sobrecargar los límites de tokens en una sola sesión, la implement
 - **Idea 11**: Puzzles de depuración (Modo "Destruye el Código").
 - **Idea 12**: Cuestionarios interactivos iniciales (Test de Entrada).
 - **Idea 13**: Desplegable lateral de referencia rápida (Cheat Sheet).
-- **Idea 14**: Guía de bienvenida interactiva (Tour Guide animado).
+- **Idea 14** [x]: Guía de bienvenida interactiva (Tour Guide animado).
 - **Idea 15**: Sección libre para experimentación (Sandbox Mode).
 
 ### 4. [ Gamificación y Experiencia de Usuario ](file:///home/zaswear/projects/dev-codigo/.docs/features/04_gamification_and_ux.md)
