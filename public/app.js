@@ -179,7 +179,7 @@ function renderCoursesGrid() {
     const badgeColor = c.color;
     
     return `
-      <div class="course-card" data-id="${c.id}">
+      <div class="course-card" role="button" tabindex="0" data-id="${c.id}" aria-label="${esc(STRINGS[state.lang].startBtn)}: ${esc(c.title[state.lang])}">
         <div class="course-card-header">
           <div class="course-card-icon" style="background-color: ${badgeColor}">
             ${c.icon}
@@ -196,8 +196,10 @@ function renderCoursesGrid() {
   }).join('');
   
   $$('.course-card', grid).forEach(card => {
-    card.addEventListener('click', () => {
-      selectCourse(card.dataset.id);
+    const go = () => selectCourse(card.dataset.id);
+    card.addEventListener('click', go);
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
     });
   });
 }
@@ -649,7 +651,7 @@ function loadLesson(dayNum) {
             <div class="terminal-line output">${STRINGS[state.lang].terminalHelp}</div>
           </div>
           <form class="terminal-prompt-row" id="terminal-form">
-            <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" autofocus>
+            <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus aria-label="${state.lang === 'es' ? 'Entrada de comandos del terminal' : 'Terminal command input'}">
           </form>
         </div>
       </div>
@@ -1149,6 +1151,7 @@ function checkTerminalLessonCompletion() {
 
 /* Helper para disparar partículas luminosas flotantes en el editor */
 function triggerCodeParticles() {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const container = $('.editor-window');
   if (!container) return;
   

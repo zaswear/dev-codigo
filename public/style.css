@@ -1368,3 +1368,24 @@ html, body {
 .topic-item.done .topic-status { color: var(--green); }
 .topic-item.active .topic-status { color: var(--primary); }
 .topic-name { line-height: 1.3; }
+
+/* ── Hardening: foco visible, motion reducido, overflow de texto ── */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.course-card:focus-visible { outline-offset: 3px; }
+
+.topic-item { min-width: 0; }
+.topic-name,
+.course-card-title,
+.sidebar-course-title { overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
