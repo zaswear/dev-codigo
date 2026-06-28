@@ -5,16 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>dev-codigo · Academia Interactiva de Programación</title>
 <meta name="description" content="Aprende GIT, Ansible, AAP, PHP y Python interactuando directamente en el navegador con un terminal y playground simulado.">
-<!-- Google Fonts (Lora, Plus Jakarta Sans, Space Mono) -->
+<!-- Preconnect a los CDN para acelerar la primera conexión -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<!-- Google Fonts (Lora, Plus Jakarta Sans, Space Mono) -->
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@300..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <!-- CSS Style Sheet -->
 <link rel="stylesheet" href="style.css">
-<!-- Phosphor Icons -->
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
-<!-- Marked.js Markdown Parser -->
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- Iconos y parser de Markdown: defer para no bloquear el render -->
+<!-- Phosphor aplica vía CSS sobre .ph, así que el orden de carga no afecta. -->
+<script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+<!-- marked se usa al cargar una lección; renderMarkdown degrada con gracia si aún no está. -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
 </head>
 <body>
 
