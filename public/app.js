@@ -159,7 +159,7 @@ async function completeDay(courseId, dayNum) {
   modal.classList.add('show');
   
   renderCoursesGrid();
-  renderDaysNav();
+  renderSidebar();
 }
 
 /* ── Render del Catálogo Inicial ─────────────────────────────────────────── */
@@ -225,46 +225,66 @@ function selectCourse(courseId) {
   loadLesson(dayToStart);
 }
 
+// El sidebar dentro de un curso muestra sus TEMAS (no la lista de cursos).
+// Sin bloqueos: cualquier tema es accesible libremente.
 function renderSidebar() {
   const sidebar = $('#sidebar');
+  if (!sidebar || !state.currentCourse) return;
+  const c = state.currentCourse;
+  const completed = state.progress[c.id] || [];
+  const levels = courseLevels();
+  const lvlLabel = {
+    principiante: STRINGS[state.lang].levelBeginner,
+    intermedio: STRINGS[state.lang].levelIntermediate
+  };
+
+  const levelHTML = levels.length > 1 ? `
+    <div class="level-toggle" id="level-toggle">
+      ${levels.map(l => `<button class="level-btn ${state.currentLevel === l ? 'active' : ''}" data-level="${l}">${lvlLabel[l]}</button>`).join('')}
+    </div>` : '';
+
+  const topicsHTML = daysForLevel(state.currentLevel).map(d => {
+    const isActive = state.currentDay === d.day;
+    const isDone = completed.includes(d.day);
+    const mark = isDone ? '<i class="ph ph-check-circle"></i>' : '<i class="ph ph-circle"></i>';
+    return `<button class="topic-item ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}" data-day="${d.day}">
+      <span class="topic-status">${mark}</span>
+      <span class="topic-name">${esc(topicTitle(d))}</span>
+    </button>`;
+  }).join('');
+
   sidebar.innerHTML = `
-    <button class="btn ghost" id="btn-back-catalog" style="margin-bottom:12px;font-size:12px;">
-      ${STRINGS[state.lang].backToCatalog}
+    <button class="btn-back" id="btn-back-catalog">
+      <i class="ph ph-arrow-left"></i> ${state.lang === 'es' ? 'Catálogo de cursos' : 'Course catalog'}
     </button>
-    <h3 class="sidebar-title">${STRINGS[state.lang].welcome}</h3>
-    <div class="course-list">
-      ${Object.values(COURSES).map(c => {
-        const active = state.currentCourse && state.currentCourse.id === c.id ? 'active' : '';
-        const done = (state.progress[c.id] || []).length;
-        return `
-          <div class="course-item ${active}" data-id="${c.id}">
-            <div class="course-icon-wrap">${c.icon}</div>
-            <div class="course-meta">
-              <span class="course-name">${esc(c.title[state.lang])}</span>
-              <span class="course-progress">${done}/${c.days.length} ${STRINGS[state.lang].completed.split(' ')[0]}</span>
-            </div>
-          </div>
-        `;
-      }).join('')}
+    <div class="sidebar-course">
+      <div class="course-icon-wrap">${c.icon}</div>
+      <span class="sidebar-course-title">${esc(c.title[state.lang])}</span>
     </div>
+    ${levelHTML}
+    <div class="topic-list">${topicsHTML}</div>
   `;
-  
+
   $('#btn-back-catalog', sidebar).addEventListener('click', () => {
     state.currentCourse = null;
     $('#course-view').style.display = 'none';
     $('#welcome-view').style.display = 'block';
-    
     const tourBtn = $('#btn-start-tour');
     if (tourBtn) tourBtn.style.display = 'none';
-    
     renderCoursesGrid();
   });
-  
-  $$('.course-item', sidebar).forEach(item => {
-    item.addEventListener('click', () => {
-      selectCourse(item.dataset.id);
-    });
-  });
+
+  $$('.level-btn', sidebar).forEach(btn => btn.addEventListener('click', () => {
+    const lvl = btn.dataset.level;
+    if (lvl === state.currentLevel) return;
+    state.currentLevel = lvl;
+    const first = daysForLevel(lvl)[0];
+    if (first) loadLesson(first.day);
+  }));
+
+  $$('.topic-item', sidebar).forEach(item => item.addEventListener('click', () => {
+    loadLesson(parseInt(item.dataset.day, 10));
+  }));
 }
 
 /* ── Niveles (principiante / intermedio) ───────────────────────────────────── */
@@ -276,6 +296,10 @@ function courseLevels() {
 }
 function daysForLevel(level) {
   return (state.currentCourse?.days || []).filter(d => levelOf(d) === level);
+}
+// Nombre del tema sin el prefijo "Día N:" / "Day N:" (organización por temas).
+function topicTitle(day) {
+  return (day.title[state.lang] || '').replace(/^(Día|Day)\s*\d+\s*[:.\-–]\s*/i, '');
 }
 
 function renderLevelToggle() {
@@ -459,18 +483,10 @@ function startTour() {
   const steps = [
     {
       target: '#sidebar',
-      title: { es: 'Cursos y Navegación', en: 'Courses & Navigation' },
+      title: { es: 'Temas del curso', en: 'Course Topics' },
       desc: {
-        es: 'Usa la barra lateral para cambiar entre los diferentes cursos de programación y DevOps o para cerrar sesión.',
-        en: 'Use the sidebar to switch between different programming and DevOps courses or to log out.'
-      }
-    },
-    {
-      target: '.days-nav',
-      title: { es: 'Fases Diarias', en: 'Daily Phases' },
-      desc: {
-        es: 'Cada curso está dividido en días prácticos. Haz clic en ellos para ir progresando paso a paso.',
-        en: 'Each course is divided into practical days. Click on them to progress step-by-step.'
+        es: 'En la barra lateral tienes todos los temas del curso. Puedes explorarlos libremente en el orden que quieras, y cambiar de nivel (principiante/intermedio). Usa «Catálogo de cursos» para volver.',
+        en: 'The sidebar lists all the course topics. Explore them freely in any order, and switch level (beginner/intermediate). Use "Course catalog" to go back.'
       }
     },
     {
@@ -598,13 +614,12 @@ function loadLesson(dayNum) {
 
   const lesson = state.currentCourse.days.find(d => d.day === dayNum);
   if (lesson) state.currentLevel = levelOf(lesson);
-  renderDaysNav();
-  renderLevelToggle();
+  renderSidebar();
 
   if (!lesson) return;
   
   // Render de cabecera de lección
-  $('#lesson-title').textContent = lesson.title[state.lang];
+  $('#lesson-title').textContent = topicTitle(lesson);
   
   // Render de teoría
   const theoryBox = $('#theory-content');
