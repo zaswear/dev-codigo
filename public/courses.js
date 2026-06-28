@@ -412,6 +412,84 @@ export const COURSES = {
         type: 'code',
         goal: 'python-functions',
         initialCode: `# Define tu función calcular_coste aquí\n`
+      },
+      {
+        day: 4,
+        title: { es: 'Día 4: Diccionarios', en: 'Day 4: Dictionaries' },
+        concept: {
+          es: `Un diccionario guarda pares clave-valor entre llaves \`{}\`. Accedes a un valor por su clave y puedes recorrerlo con \`.items()\`.\n\n### Ejemplo:\n\`\`\`python\npieza = {"nombre": "Tuerca", "peso": 5}\nprint(pieza["nombre"])  # Tuerca\nfor clave, valor in pieza.items():\n    print(clave, valor)\n\`\`\``,
+          en: `A dictionary stores key-value pairs inside braces \`{}\`. You access a value by its key and can iterate with \`.items()\`.\n\n### Example:\n\`\`\`python\npiece = {"name": "Nut", "weight": 5}\nprint(piece["name"])  # Nut\nfor key, value in piece.items():\n    print(key, value)\n\`\`\``
+        },
+        practice: {
+          es: 'Crea un diccionario `pieza` con `nombre`="Soporte", `material`="PLA" y `peso`=30. Imprime con un f-string accediendo a las claves: `"Soporte (PLA) pesa 30g"`.',
+          en: 'Create a dictionary `pieza` with `nombre`="Soporte", `material`="PLA" and `peso`=30. Print with an f-string accessing the keys: `"Soporte (PLA) pesa 30g"`.'
+        },
+        type: 'code',
+        goal: 'python-dict',
+        initialCode: `# Crea el diccionario pieza e imprímelo aquí\n`
+      },
+      {
+        day: 5,
+        title: { es: 'Día 5: Cadenas y f-strings', en: 'Day 5: Strings & f-strings' },
+        concept: {
+          es: `Las cadenas tienen métodos muy útiles: \`.upper()\`, \`.lower()\`, \`.strip()\`, \`.replace()\`, \`.capitalize()\`, y \`len()\` para su longitud.\n\n### Ejemplo:\n\`\`\`python\ntexto = " hola "\nprint(texto.strip().upper())  # HOLA\nprint(len("PLA"))  # 3\n\`\`\``,
+          en: `Strings have handy methods: \`.upper()\`, \`.lower()\`, \`.strip()\`, \`.replace()\`, \`.capitalize()\`, and \`len()\` for their length.\n\n### Example:\n\`\`\`python\ntext = " hi "\nprint(text.strip().upper())  # HI\nprint(len("PLA"))  # 3\n\`\`\``
+        },
+        practice: {
+          es: 'Crea `marca = "prusa"`. Usa `.capitalize()` y `len()` dentro de un f-string para imprimir exactamente: `"Prusa tiene 5 letras"`.',
+          en: 'Create `marca = "prusa"`. Use `.capitalize()` and `len()` inside an f-string to print exactly: `"Prusa tiene 5 letras"`.'
+        },
+        type: 'code',
+        goal: 'python-strings',
+        initialCode: `# Trabaja la cadena marca aquí\n`
+      },
+      {
+        day: 6,
+        level: 'intermedio',
+        title: { es: 'Día 6: Comprensión de Listas', en: 'Day 6: List Comprehensions' },
+        concept: {
+          es: `Una comprensión de lista crea una lista nueva en una sola línea: \`[expresión for elem in iterable if condición]\`. Es más conciso que un bucle con \`append\`.\n\n### Ejemplo:\n\`\`\`python\ncuadrados = [n * n for n in range(5)]\npares = [n for n in range(10) if n % 2 == 0]\n\`\`\``,
+          en: `A list comprehension builds a new list in one line: \`[expression for item in iterable if condition]\`. More concise than a loop with \`append\`.\n\n### Example:\n\`\`\`python\nsquares = [n * n for n in range(5)]\nevens = [n for n in range(10) if n % 2 == 0]\n\`\`\``
+        },
+        practice: {
+          es: 'A partir de `numeros = [1, 2, 3, 4, 5, 6]`, crea con UNA comprensión de lista la variable `pares` con el doble de los números pares. Imprime `pares` (resultado esperado: `[4, 8, 12]`).',
+          en: 'From `numeros = [1, 2, 3, 4, 5, 6]`, build `pares` with a SINGLE list comprehension holding the double of the even numbers. Print `pares` (expected: `[4, 8, 12]`).'
+        },
+        type: 'code',
+        goal: 'python-comprehension',
+        initialCode: `numeros = [1, 2, 3, 4, 5, 6]\n# Escribe aquí la comprensión de lista\n`
+      },
+      {
+        day: 7,
+        level: 'intermedio',
+        title: { es: 'Día 7: Clases y Objetos', en: 'Day 7: Classes & Objects' },
+        concept: {
+          es: `Las clases definen objetos. \`__init__\` es el constructor y \`self\` referencia a la instancia actual.\n\n### Ejemplo:\n\`\`\`python\nclass Pieza:\n    def __init__(self, nombre):\n        self.nombre = nombre\n    def describir(self):\n        return f"Pieza: {self.nombre}"\n\`\`\``,
+          en: `Classes define objects. \`__init__\` is the constructor and \`self\` refers to the current instance.\n\n### Example:\n\`\`\`python\nclass Part:\n    def __init__(self, name):\n        self.name = name\n    def describe(self):\n        return f"Part: {self.name}"\n\`\`\``
+        },
+        practice: {
+          es: 'Crea una clase `Impresora` con `__init__(self, modelo)` que guarde `self.modelo`, y un método `describir(self)` que retorne `f"Impresora: {self.modelo}"`. Instánciala con modelo `"Ender 3"` e imprime el resultado de `describir()`.',
+          en: 'Create a class `Impresora` with `__init__(self, modelo)` storing `self.modelo`, and a method `describir(self)` returning `f"Impresora: {self.modelo}"`. Instantiate it with model `"Ender 3"` and print the result of `describir()`.'
+        },
+        type: 'code',
+        goal: 'python-classes',
+        initialCode: `# Define la clase Impresora y úsala aquí\n`
+      },
+      {
+        day: 8,
+        level: 'intermedio',
+        title: { es: 'Día 8: Excepciones y finally', en: 'Day 8: Exceptions & finally' },
+        concept: {
+          es: `\`try/except/finally\` controla los errores sin que el programa se detenga. El bloque \`finally\` se ejecuta siempre, falle o no.\n\n### Ejemplo:\n\`\`\`python\ntry:\n    n = int("abc")\nexcept ValueError:\n    n = None\nfinally:\n    print("Listo")\n\`\`\``,
+          en: `\`try/except/finally\` handles errors without crashing the program. The \`finally\` block always runs, success or failure.\n\n### Example:\n\`\`\`python\ntry:\n    n = int("abc")\nexcept ValueError:\n    n = None\nfinally:\n    print("Done")\n\`\`\``
+        },
+        practice: {
+          es: 'Escribe `leer_config(valor)` que intente `int(valor)` y lo retorne. Si lanza `ValueError`, captúralo y retorna `None`. En `finally`, imprime `"Comprobación finalizada"`. Testea con `print(leer_config("abc"))`.',
+          en: 'Write `leer_config(valor)` that tries `int(valor)` and returns it. On `ValueError`, catch it and return `None`. In `finally`, print `"Comprobación finalizada"`. Test with `print(leer_config("abc"))`.'
+        },
+        type: 'code',
+        goal: 'python-exceptions',
+        initialCode: `# Define leer_config(valor) aquí\n`
       }
     ]
   }

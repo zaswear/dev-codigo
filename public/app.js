@@ -1339,6 +1339,68 @@ function handleCodeRun() {
           output = 'Error:\nDefine la función "calcular_coste(peso_g, precio_kg)" manejando excepciones con try/except.';
         }
       }
+      else if (day === 4) {
+        // python diccionarios
+        const hasDict = code.includes('pieza') && code.includes('nombre') && code.includes('Soporte') && code.includes('material') && code.includes('PLA') && code.includes('peso') && code.includes('30');
+        const hasAccess = code.includes("pieza['") || code.includes('pieza["');
+        const hasPrint = code.includes('print') && code.includes('30g');
+        if (hasDict && hasAccess && hasPrint) {
+          success = true;
+          output = 'Soporte (PLA) pesa 30g\n\n[Python Process Completed]';
+        } else {
+          output = 'Error:\nCrea el diccionario "pieza" con nombre/material/peso y accede a sus claves dentro de un f-string.';
+        }
+      }
+      else if (day === 5) {
+        // python cadenas / f-strings
+        const hasVar = code.includes('marca') && code.includes('prusa');
+        const hasMethods = code.includes('.capitalize()') && code.includes('len(');
+        const hasPrint = code.includes('print') && code.includes('5 letras');
+        if (hasVar && hasMethods && hasPrint) {
+          success = true;
+          output = 'Prusa tiene 5 letras\n\n[Python Process Completed]';
+        } else {
+          output = 'Error:\nUsa marca="prusa", .capitalize() y len() en un f-string para imprimir "Prusa tiene 5 letras".';
+        }
+      }
+      else if (day === 6) {
+        // python comprensión de listas
+        const hasList = code.includes('numeros');
+        const hasComp = code.includes('for') && code.includes('in numeros') && code.includes('if') && code.includes('% 2');
+        const hasDouble = code.includes('*2') || code.includes('* 2') || code.includes('2*') || code.includes('2 *');
+        const hasPrint = code.includes('print') && code.includes('pares');
+        if (hasList && hasComp && hasDouble && hasPrint) {
+          success = true;
+          output = '[4, 8, 12]\n\n[Python Process Completed]';
+        } else {
+          output = 'Error:\nUsa una comprensión de lista sobre "numeros" filtrando pares (% 2 == 0) y duplicando el valor en "pares".';
+        }
+      }
+      else if (day === 7) {
+        // python clases
+        const hasClass = code.includes('class Impresora') && code.includes('__init__') && code.includes('self.modelo');
+        const hasMethod = code.includes('def describir') && code.includes('return');
+        const hasInstance = code.includes('Ender 3') && code.includes('.describir()') && code.includes('print');
+        if (hasClass && hasMethod && hasInstance) {
+          success = true;
+          output = 'Impresora: Ender 3\n\n[Python Process Completed]';
+        } else {
+          output = 'Error:\nDefine class Impresora con __init__/self.modelo y el método describir(); instancia con "Ender 3" e imprime describir().';
+        }
+      }
+      else if (day === 8) {
+        // python excepciones
+        const hasFunc = code.includes('def leer_config');
+        const hasTry = code.includes('try:') && code.includes('except') && code.includes('finally');
+        const hasInt = code.includes('int(');
+        const hasPrint = code.includes('print') && code.includes('Comprobación finalizada');
+        if (hasFunc && hasTry && hasInt && hasPrint) {
+          success = true;
+          output = 'Comprobación finalizada\nNone\n\n[Python Process Completed]';
+        } else {
+          output = 'Error:\nDefine leer_config(valor) con try/except ValueError/finally; en finally imprime "Comprobación finalizada".';
+        }
+      }
     }
   } catch (err) {
     output = `Compilación fallida: ${err.message}`;
