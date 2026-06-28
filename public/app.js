@@ -17,7 +17,7 @@ const STRINGS = {
     startBtn: 'Comenzar Curso',
     day: 'Día',
     completed: 'Completado ✓',
-    nextDayBtn: 'Continuar al siguiente día',
+    nextDayBtn: 'Continuar al siguiente tema',
     runBtn: 'Ejecutar',
     runBtnDesc: 'Comprobar solución',
     codeOutput: 'Consola de salida',
@@ -26,9 +26,9 @@ const STRINGS = {
     courseDone: '¡Curso completado!',
     signInGithub: 'Entrar con GitHub',
     syncSuccess: 'Progreso sincronizado',
-    modalTitle: '¡Día Completado!',
-    modalDesc: 'Has asimilado el concepto y superado la práctica de hoy con éxito.',
-    modalBtn: 'Siguiente Lección',
+    modalTitle: '¡Tema completado!',
+    modalDesc: 'Has asimilado el concepto y superado la práctica de este tema con éxito.',
+    modalBtn: 'Siguiente tema',
     backToCatalog: '← Volver al catálogo',
     terminalHelp: 'Escribe "help" para ver los comandos disponibles.',
     emptyTerminal: 'Consola inicializada.',
@@ -45,7 +45,7 @@ const STRINGS = {
     startBtn: 'Start Course',
     day: 'Day',
     completed: 'Completed ✓',
-    nextDayBtn: 'Continue to next day',
+    nextDayBtn: 'Continue to next topic',
     runBtn: 'Run Code',
     runBtnDesc: 'Verify solution',
     codeOutput: 'Console Output',
@@ -54,9 +54,9 @@ const STRINGS = {
     courseDone: 'Course completed!',
     signInGithub: 'Sign In with GitHub',
     syncSuccess: 'Progress synchronized',
-    modalTitle: 'Day Completed!',
-    modalDesc: 'You have mastered the concept and successfully passed today\'s practice.',
-    modalBtn: 'Next Lesson',
+    modalTitle: 'Topic completed!',
+    modalDesc: 'You have mastered the concept and successfully passed this topic\'s practice.',
+    modalBtn: 'Next topic',
     backToCatalog: '← Back to Catalog',
     terminalHelp: 'Type "help" to list available commands.',
     emptyTerminal: 'Console initialized.',
@@ -302,65 +302,6 @@ function daysForLevel(level) {
 // Nombre del tema sin el prefijo "Día N:" / "Day N:" (organización por temas).
 function topicTitle(day) {
   return (day.title[state.lang] || '').replace(/^(Día|Day)\s*\d+\s*[:.\-–]\s*/i, '');
-}
-
-function renderLevelToggle() {
-  const el = $('#level-toggle');
-  if (!el || !state.currentCourse) return;
-  const levels = courseLevels();
-  if (levels.length < 2) { el.innerHTML = ''; return; } // curso sin nivel intermedio aún
-  const label = {
-    principiante: STRINGS[state.lang].levelBeginner,
-    intermedio: STRINGS[state.lang].levelIntermediate
-  };
-  el.innerHTML = levels.map(l =>
-    `<button class="level-btn ${state.currentLevel === l ? 'active' : ''}" data-level="${l}">${label[l]}</button>`
-  ).join('');
-  $$('.level-btn', el).forEach(btn => {
-    btn.addEventListener('click', () => {
-      const lvl = btn.dataset.level;
-      if (lvl === state.currentLevel) return;
-      state.currentLevel = lvl;
-      const first = daysForLevel(lvl)[0];
-      if (first) loadLesson(first.day);
-    });
-  });
-}
-
-function renderDaysNav() {
-  const nav = $('#days-nav');
-  if (!nav || !state.currentCourse) return;
-
-  const completed = state.progress[state.currentCourse.id] || [];
-  const days = daysForLevel(state.currentLevel);
-
-  nav.innerHTML = days.map((d, i) => {
-    const isCompleted = completed.includes(d.day);
-    const isActive = state.currentDay === d.day;
-
-    // Bloquear si el día anterior (numeración continua) no está completado
-    const isLocked = d.day > 1 && !completed.includes(d.day - 1);
-
-    let cls = 'day-tab';
-    if (isActive) cls += ' active';
-    if (isLocked) cls += ' locked';
-
-    let icon = '';
-    if (isCompleted) icon = ' <i class="ph ph-check-circle" style="color:#10b981"></i>';
-    else if (isLocked) icon = ' <i class="ph ph-lock"></i>';
-
-    return `<button class="${cls}" data-day="${d.day}" ${isLocked ? 'disabled' : ''}>
-      ${STRINGS[state.lang].day} ${i + 1}${icon}
-    </button>`;
-  }).join('');
-
-  $$('.day-tab', nav).forEach(tab => {
-    tab.addEventListener('click', () => {
-      if (!tab.classList.contains('locked')) {
-        loadLesson(parseInt(tab.dataset.day, 10));
-      }
-    });
-  });
 }
 
 /* Helper para procesar Markdown de forma segura */
