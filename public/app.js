@@ -519,19 +519,32 @@ function startTour() {
   function positionTourCard(targetEl, cardEl) {
     const rect = targetEl.getBoundingClientRect();
     const cardWidth = 320;
-    
-    let left = rect.left + (rect.width - cardWidth) / 2;
-    let top = rect.bottom + 12;
-    
-    if (left < 16) left = 16;
-    if (left + cardWidth > window.innerWidth - 16) {
-      left = window.innerWidth - cardWidth - 16;
+    const cardHeight = cardEl.offsetHeight || 180;
+    const gap = 14;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+
+    let left, top;
+    const spaceBelow = vh - rect.bottom;
+    const spaceRight = vw - rect.right;
+    const isTall = rect.height > vh * 0.55;
+
+    if (isTall && spaceRight > cardWidth + gap * 2) {
+      // Panel alto (p. ej. sidebar): colócala al lado para no taparlo.
+      left = rect.right + gap;
+      top = clamp(rect.top, 16, vh - cardHeight - 16);
+    } else if (spaceBelow > cardHeight + gap) {
+      left = rect.left + (rect.width - cardWidth) / 2;
+      top = rect.bottom + gap;
+    } else {
+      // Sin sitio debajo: encima del objetivo.
+      left = rect.left + (rect.width - cardWidth) / 2;
+      top = rect.top - cardHeight - gap;
     }
-    if (top + 180 > window.innerHeight - 16) {
-      top = rect.top - 180 - 12;
-    }
-    if (top < 16) top = 16;
-    
+
+    left = clamp(left, 16, vw - cardWidth - 16);
+    top = clamp(top, 16, vh - cardHeight - 16);
+
     cardEl.style.left = `${left}px`;
     cardEl.style.top = `${top}px`;
   }
