@@ -34,7 +34,9 @@ const STRINGS = {
     emptyTerminal: 'Consola inicializada.',
     unlockedMsg: 'Nueva lección disponible',
     skipBtn: 'Omitir',
-    tourBtn: 'Tour Guide'
+    tourBtn: 'Tour Guide',
+    levelBeginner: 'Principiante',
+    levelIntermediate: 'Intermedio'
   },
   en: {
     welcome: 'Learn Coding Easily',
@@ -60,7 +62,9 @@ const STRINGS = {
     emptyTerminal: 'Console initialized.',
     unlockedMsg: 'New lesson unlocked',
     skipBtn: 'Skip',
-    tourBtn: 'Tour Guide'
+    tourBtn: 'Tour Guide',
+    levelBeginner: 'Beginner',
+    levelIntermediate: 'Intermediate'
   }
 };
 
@@ -71,6 +75,7 @@ const state = {
   progress: JSON.parse(localStorage.getItem('dc-progress') || '{}'), // { git: [1], python: [1, 2] }
   currentCourse: null,
   currentDay: 1,
+  currentLevel: 'principiante', // 'principiante' | 'intermedio'
   // Estado del simulador de Terminal (Git / Ansible)
   fs: {},
   git: {
@@ -262,32 +267,67 @@ function renderSidebar() {
   });
 }
 
+/* ── Niveles (principiante / intermedio) ───────────────────────────────────── */
+// Días sin campo `level` se tratan como 'principiante' (retrocompatible).
+function levelOf(day) { return day.level || 'principiante'; }
+function courseLevels() {
+  const set = new Set((state.currentCourse?.days || []).map(levelOf));
+  return ['principiante', 'intermedio'].filter(l => set.has(l));
+}
+function daysForLevel(level) {
+  return (state.currentCourse?.days || []).filter(d => levelOf(d) === level);
+}
+
+function renderLevelToggle() {
+  const el = $('#level-toggle');
+  if (!el || !state.currentCourse) return;
+  const levels = courseLevels();
+  if (levels.length < 2) { el.innerHTML = ''; return; } // curso sin nivel intermedio aún
+  const label = {
+    principiante: STRINGS[state.lang].levelBeginner,
+    intermedio: STRINGS[state.lang].levelIntermediate
+  };
+  el.innerHTML = levels.map(l =>
+    `<button class="level-btn ${state.currentLevel === l ? 'active' : ''}" data-level="${l}">${label[l]}</button>`
+  ).join('');
+  $$('.level-btn', el).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const lvl = btn.dataset.level;
+      if (lvl === state.currentLevel) return;
+      state.currentLevel = lvl;
+      const first = daysForLevel(lvl)[0];
+      if (first) loadLesson(first.day);
+    });
+  });
+}
+
 function renderDaysNav() {
   const nav = $('#days-nav');
   if (!nav || !state.currentCourse) return;
-  
+
   const completed = state.progress[state.currentCourse.id] || [];
-  
-  nav.innerHTML = state.currentCourse.days.map(d => {
+  const days = daysForLevel(state.currentLevel);
+
+  nav.innerHTML = days.map((d, i) => {
     const isCompleted = completed.includes(d.day);
     const isActive = state.currentDay === d.day;
-    
-    // Bloquear si el día anterior no está completado
+
+    // Bloquear si el día anterior (numeración continua) no está completado
     const isLocked = d.day > 1 && !completed.includes(d.day - 1);
-    
+
     let cls = 'day-tab';
     if (isActive) cls += ' active';
     if (isLocked) cls += ' locked';
-    
+
     let icon = '';
     if (isCompleted) icon = ' <i class="ph ph-check-circle" style="color:#10b981"></i>';
     else if (isLocked) icon = ' <i class="ph ph-lock"></i>';
-    
+
     return `<button class="${cls}" data-day="${d.day}" ${isLocked ? 'disabled' : ''}>
-      ${STRINGS[state.lang].day} ${d.day}${icon}
+      ${STRINGS[state.lang].day} ${i + 1}${icon}
     </button>`;
   }).join('');
-  
+
   $$('.day-tab', nav).forEach(tab => {
     tab.addEventListener('click', () => {
       if (!tab.classList.contains('locked')) {
@@ -555,9 +595,12 @@ function startTour() {
 /* ── Cargar Lección ──────────────────────────────────────────────────────── */
 function loadLesson(dayNum) {
   state.currentDay = dayNum;
-  renderDaysNav();
-  
+
   const lesson = state.currentCourse.days.find(d => d.day === dayNum);
+  if (lesson) state.currentLevel = levelOf(lesson);
+  renderDaysNav();
+  renderLevelToggle();
+
   if (!lesson) return;
   
   // Render de cabecera de lección
@@ -823,7 +866,7 @@ function handleTerminalSubmit(e) {
   }
   
   if (command === 'help') {
-    printToTerminal('Comandos disponibles: help, clear, touch <archivo>, ls, git init, git status, git add <archivo>, git commit -m "<mensaje>", git branch <nombre>, git checkout <nombre>');
+    printToTerminal('Comandos: help, clear, touch <archivo>, ls · git init/status/add/commit -m/branch/checkout · (intermedio) git log, git diff, git merge <rama>, git remote add <nombre> <url>, git push');
     return;
   }
   
@@ -954,27 +997,92 @@ function handleTerminalSubmit(e) {
     
     if (action === 'branch') {
       const bname = tokens[2];
+      state.git.branchList = state.git.branchList || [state.git.branch];
       if (!bname) {
-        printToTerminal(`* ${state.git.branch}`);
+        state.git.branchList.forEach(b => printToTerminal(`${b === state.git.branch ? '* ' : '  '}${b}`));
         return;
       }
+      if (!state.git.branchList.includes(bname)) state.git.branchList.push(bname);
       printToTerminal(`Creada rama: ${bname}`);
-      // Simular creación
       return;
     }
-    
+
     if (action === 'checkout') {
       const targetBranch = tokens[2];
       if (!targetBranch) {
         printToTerminal('Checkout requiere nombre de rama o archivo', 'error');
         return;
       }
+      state.git.branchList = state.git.branchList || [state.git.branch];
+      if (!state.git.branchList.includes(targetBranch)) state.git.branchList.push(targetBranch);
       state.git.branch = targetBranch;
       printToTerminal(`Cambiado a la rama '${targetBranch}'`);
       checkTerminalLessonCompletion();
       return;
     }
-    
+
+    // ── Intermedio: historial, fusión y remotos ──
+    if (action === 'log') {
+      if (!state.git.commits.length) {
+        printToTerminal('fatal: tu rama actual aún no tiene commits', 'error');
+        return;
+      }
+      const head = state.git.commits[state.git.commits.length - 1];
+      [...state.git.commits].reverse().forEach(c => {
+        printToTerminal(`commit ${c.id}${c === head ? ` (HEAD -> ${state.git.branch})` : ''}`, 'success');
+        printToTerminal(`    ${c.message}`);
+      });
+      state.git.logViewed = true;
+      checkTerminalLessonCompletion();
+      return;
+    }
+
+    if (action === 'diff') {
+      const unstaged = Object.keys(state.fs).filter(f => !state.git.staged.includes(f));
+      if (!unstaged.length) { printToTerminal('(sin cambios sin preparar)'); return; }
+      unstaged.forEach(f => printToTerminal(`diff --git a/${f} b/${f}`));
+      return;
+    }
+
+    if (action === 'merge') {
+      const src = tokens[2];
+      state.git.branchList = state.git.branchList || [state.git.branch];
+      if (!src) { printToTerminal('Uso: git merge <rama>', 'error'); return; }
+      if (!state.git.branchList.includes(src)) { printToTerminal(`merge: ${src} - no se encontró la rama`, 'error'); return; }
+      if (src === state.git.branch) { printToTerminal('Ya está actualizado (Already up to date).'); return; }
+      state.git.commits.push({ id: Math.random().toString(16).slice(2, 9), message: `Merge branch '${src}' into ${state.git.branch}`, files: [] });
+      state.git.merged = true;
+      printToTerminal(`Merge made by the 'ort' strategy.`, 'success');
+      printToTerminal(` Fusionada la rama '${src}' en '${state.git.branch}'.`);
+      checkTerminalLessonCompletion();
+      return;
+    }
+
+    if (action === 'remote') {
+      const sub = tokens[2];
+      if (sub === 'add') {
+        const name = tokens[3], remoteUrl = tokens[4];
+        if (!name || !remoteUrl) { printToTerminal('Uso: git remote add <nombre> <url>', 'error'); return; }
+        state.git.remote = { name, url: remoteUrl };
+        printToTerminal(`Remoto '${name}' añadido → ${remoteUrl}`);
+        checkTerminalLessonCompletion();
+        return;
+      }
+      if (state.git.remote) printToTerminal(`${state.git.remote.name}\t${state.git.remote.url} (fetch & push)`);
+      else printToTerminal('(sin remotos configurados)');
+      return;
+    }
+
+    if (action === 'push') {
+      if (!state.git.remote) { printToTerminal('fatal: sin destino de push. Usa "git remote add origin <url>".', 'error'); return; }
+      if (!state.git.commits.length) { printToTerminal('Everything up-to-date'); return; }
+      state.git.pushed = true;
+      printToTerminal(`To ${state.git.remote.url}`, 'success');
+      printToTerminal(` * [new branch]      ${state.git.branch} -> ${state.git.branch}`);
+      checkTerminalLessonCompletion();
+      return;
+    }
+
     printToTerminal(`Comando de Git desconocido: ${action}`, 'error');
     return;
   }
@@ -1007,6 +1115,19 @@ function checkTerminalLessonCompletion() {
       if (isFeatureBranch && hasCss && hasCommits) {
         completeDay(courseId, day);
       }
+    }
+    // ── Nivel intermedio ──
+    else if (day === 4) {
+      // Día 4: inspeccionar el historial con git log (con ≥2 commits)
+      if (state.git.logViewed && state.git.commits.length >= 2) completeDay(courseId, day);
+    }
+    else if (day === 5) {
+      // Día 5: fusionar una rama de vuelta en main
+      if (state.git.merged && state.git.branch === 'main') completeDay(courseId, day);
+    }
+    else if (day === 6) {
+      // Día 6: añadir un remoto y hacer push
+      if (state.git.remote && state.git.pushed) completeDay(courseId, day);
     }
   }
 }

@@ -87,6 +87,82 @@ export const COURSES = {
             branch: 'main'
           }
         }
+      },
+      {
+        day: 4,
+        level: 'intermedio',
+        title: { es: 'Día 4: Historial y Diferencias', en: 'Day 4: History & Diffs' },
+        concept: {
+          es: `Git guarda un historial completo de tus commits. Para revisarlo usas \`git log\`, y para ver qué ha cambiado, \`git diff\`.\n\n### Comandos:\n- \`git log\`: lista los commits del más reciente al más antiguo (hash, mensaje y rama HEAD).\n- \`git log --oneline\`: versión compacta, un commit por línea.\n- \`git diff\`: muestra los cambios que aún no has preparado (staged).`,
+          en: `Git keeps a full history of your commits. Review it with \`git log\`, and see what changed with \`git diff\`.\n\n### Commands:\n- \`git log\`: lists commits newest-first (hash, message and HEAD branch).\n- \`git log --oneline\`: compact, one commit per line.\n- \`git diff\`: shows changes you haven't staged yet.`
+        },
+        practice: {
+          es: 'Tu taller ya tiene dos commits. Ejecuta `git log` para inspeccionar el historial completo del repositorio.',
+          en: 'Your workspace already has two commits. Run `git log` to inspect the full repository history.'
+        },
+        type: 'terminal',
+        goal: 'git-log',
+        initialState: {
+          fs: { 'README.md': 'Welcome to dev-codigo', 'index.html': '<h1>Hello World</h1>' },
+          git: {
+            initialized: true,
+            staged: [],
+            commits: [
+              { id: 'a1b2c3d', message: 'Initial commit' },
+              { id: 'b2c3d4e', message: 'Add index.html' }
+            ],
+            branch: 'main'
+          }
+        }
+      },
+      {
+        day: 5,
+        level: 'intermedio',
+        title: { es: 'Día 5: Fusión de Ramas', en: 'Day 5: Merging Branches' },
+        concept: {
+          es: `Las ramas permiten desarrollar en paralelo; \`git merge\` integra el trabajo de una rama en otra.\n\n### Flujo típico:\n1. \`git branch hotfix\` y \`git checkout hotfix\` para aislar el cambio.\n2. Trabajas y haces commit en la rama.\n3. Vuelves a \`main\` con \`git checkout main\`.\n4. \`git merge hotfix\` fusiona los cambios en \`main\`.`,
+          en: `Branches let you work in parallel; \`git merge\` integrates one branch's work into another.\n\n### Typical flow:\n1. \`git branch hotfix\` and \`git checkout hotfix\` to isolate the change.\n2. Work and commit on the branch.\n3. Return to \`main\` with \`git checkout main\`.\n4. \`git merge hotfix\` merges the changes into \`main\`.`
+        },
+        practice: {
+          es: 'Crea la rama `hotfix` y cámbiate a ella. Crea `fix.txt` (`touch fix.txt`), añádelo y haz un commit. Vuelve a `main` y ejecuta: `git merge hotfix`.',
+          en: 'Create branch `hotfix` and switch to it. Create `fix.txt` (`touch fix.txt`), add and commit it. Switch back to `main` and run: `git merge hotfix`.'
+        },
+        type: 'terminal',
+        goal: 'git-merge',
+        initialState: {
+          fs: { 'README.md': 'Welcome to dev-codigo' },
+          git: {
+            initialized: true,
+            staged: [],
+            commits: [{ id: 'a1b2c3d', message: 'Initial commit' }],
+            branch: 'main',
+            branchList: ['main']
+          }
+        }
+      },
+      {
+        day: 6,
+        level: 'intermedio',
+        title: { es: 'Día 6: Repositorios Remotos', en: 'Day 6: Remote Repositories' },
+        concept: {
+          es: `Un remoto es una copia del repositorio alojada en un servidor (p. ej. GitHub). \`git push\` sube tus commits locales al remoto.\n\n### Comandos:\n- \`git remote add origin <url>\`: vincula tu repo local con el remoto llamado \`origin\`.\n- \`git remote -v\`: lista los remotos configurados.\n- \`git push -u origin main\`: sube la rama \`main\` y la deja enlazada (upstream).`,
+          en: `A remote is a copy of the repository hosted on a server (e.g. GitHub). \`git push\` uploads your local commits to it.\n\n### Commands:\n- \`git remote add origin <url>\`: links your local repo with the remote named \`origin\`.\n- \`git remote -v\`: lists configured remotes.\n- \`git push -u origin main\`: pushes the \`main\` branch and sets its upstream.`
+        },
+        practice: {
+          es: 'Conecta un remoto con `git remote add origin https://github.com/tu-usuario/proyecto.git` y sube tu trabajo con `git push -u origin main`.',
+          en: 'Connect a remote with `git remote add origin https://github.com/your-user/project.git` and push your work with `git push -u origin main`.'
+        },
+        type: 'terminal',
+        goal: 'git-remote',
+        initialState: {
+          fs: { 'README.md': 'Welcome to dev-codigo', 'index.html': '<h1>Hello World</h1>' },
+          git: {
+            initialized: true,
+            staged: [],
+            commits: [{ id: 'a1b2c3d', message: 'Initial commit' }],
+            branch: 'main'
+          }
+        }
       }
     ]
   },
