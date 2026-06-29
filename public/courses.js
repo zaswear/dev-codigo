@@ -494,3 +494,114 @@ export const COURSES = {
     ]
   }
 };
+
+export const CHEATSHEETS = {
+  git: {
+    id: 'git',
+    title: { es: 'Chuletas de Git', en: 'Git Cheatsheets' },
+    recipes: [
+      {
+        id: 'git-stash',
+        title: { es: 'Guardar Trabajo Temporal (Git Stash)', en: 'Save Work Temporarily (Git Stash)' },
+        concept: {
+          es: `\`git stash\` guarda de forma temporal tus cambios locales no confirmados para que puedas tener un directorio de trabajo limpio sin necesidad de hacer un commit.\n\n### Comandos:\n- \`git stash\`: Guarda tus cambios locales.\n- \`git stash pop\`: Recupera y aplica tus cambios guardados más recientes.`,
+          en: `\`git stash\` temporarily saves your uncommitted local changes so you can have a clean working directory without committing.\n\n### Commands:\n- \`git stash\`: Saves your local changes.\n- \`git stash pop\`: Retrieves and applies your most recently saved changes.`
+        },
+        practice: {
+          es: 'Ejecuta `git stash` para guardar los cambios de tu archivo index.html en el stash. Luego verifica el estado con `git status`.',
+          en: 'Run `git stash` to save the changes in index.html into the stash. Then check status with `git status`.'
+        },
+        type: 'terminal',
+        goal: 'git stash',
+        initialState: {
+          fs: {
+            'README.md': 'Welcome to dev-codigo',
+            'index.html': '<h1>Modificaciones locales</h1>'
+          },
+          git: {
+            initialized: true,
+            staged: [],
+            commits: [{ id: 'a1b2c3d', message: 'Initial commit' }],
+            branch: 'main'
+          }
+        }
+      },
+      {
+        id: 'git-cherry-pick',
+        title: { es: 'Aplicar Commit Específico (Cherry Pick)', en: 'Apply Specific Commit (Cherry Pick)' },
+        concept: {
+          es: `\`git cherry-pick <commit-hash>\` te permite aplicar los cambios de un commit específico de cualquier otra rama en tu rama activa actual.\n\n### Comando:\n- \`git cherry-pick <hash>\`: Copia y aplica el commit con ese hash en tu rama actual.`,
+          en: `\`git cherry-pick <commit-hash>\` allows you to apply changes from a specific commit from any other branch to your currently active branch.\n\n### Command:\n- \`git cherry-pick <hash>\`: Copies and applies the commit with that hash to your current branch.`
+        },
+        practice: {
+          es: 'Aplica el commit con hash `e3d4c5b` (de la rama feature) en tu rama main actual usando `git cherry-pick e3d4c5b`.',
+          en: 'Apply the commit with hash `e3d4c5b` (from feature branch) onto your current main branch using `git cherry-pick e3d4c5b`.'
+        },
+        type: 'terminal',
+        goal: 'git cherry-pick',
+        initialState: {
+          fs: { 'README.md': 'Welcome' },
+          git: {
+            initialized: true,
+            staged: [],
+            commits: [{ id: 'a1b2c3d', message: 'Initial commit' }],
+            branch: 'main'
+          }
+        }
+      }
+    ]
+  },
+  ansible: {
+    id: 'ansible',
+    title: { es: 'Chuletas de Ansible', en: 'Ansible Cheatsheets' },
+    recipes: [
+      {
+        id: 'ansible-ping',
+        title: { es: 'Comando Ad-Hoc (Ping)', en: 'Ad-Hoc Command (Ping)' },
+        concept: {
+          es: `Los comandos ad-hoc de Ansible te permiten ejecutar tareas rápidas en tus hosts sin escribir un playbook completo.\n\n### Sintaxis:\n\`ansible <patrón-hosts> -m <módulo> -i <inventario>\`\n\n- \`-m ping\`: Usa el módulo ping para comprobar conectividad SSH y disponibilidad de python.`,
+          en: `Ansible ad-hoc commands allow you to run quick, one-off tasks on your hosts without writing a complete playbook.\n\n### Syntax:\n\`ansible <host-pattern> -m <module> -i <inventory>\`\n\n- \`-m ping\`: Uses the ping module to check SSH connectivity and Python availability.`
+        },
+        practice: {
+          es: 'Escribe un comando ad-hoc para hacer un ping a todos los hosts (\`all\`) usando el inventario \`hosts.yml\`. Recuerda usar \`ansible all -m ping -i hosts.yml\`.',
+          en: 'Write an ad-hoc command to ping all hosts (\`all\`) using the inventory \`hosts.yml\`. Remember to use \`ansible all -m ping -i hosts.yml\`.'
+        },
+        type: 'terminal',
+        goal: 'ansible-ping',
+        initialState: {
+          fs: {
+            'hosts.yml': 'webservers:\n  hosts:\n    localhost:\n      ansible_connection: local'
+          }
+        }
+      },
+      {
+        id: 'ansible-handlers',
+        title: { es: 'Uso de Handlers', en: 'Using Handlers' },
+        concept: {
+          es: `Los **Handlers** son tareas especiales que solo se ejecutan cuando son notificados por otra tarea usando la directiva \`notify\`. Se usan comúnmente para reiniciar servicios tras un cambio de configuración.\n\n### Estructura:\n\`\`\`yaml\n  tasks:\n    - name: Configurar apache\n      template: src=ports.conf dest=/etc/apache2/\n      notify: Reiniciar apache\n  handlers:\n    - name: Reiniciar apache\n      service: name=apache2 state=restarted\n\`\`\``,
+          en: `**Handlers** are special tasks that only run when notified by another task using the \`notify\` directive. They are commonly used to restart services after configuration changes.\n\n### Structure:\n\`\`\`yaml\n  tasks:\n    - name: Configure apache\n      template: src=ports.conf dest=/etc/apache2/\n      notify: Restart apache\n  handlers:\n    - name: Restart apache\n      service: name=apache2 state=restarted\n\`\`\``
+        },
+        practice: {
+          es: 'Escribe un playbook completo que configure apache en localhost. Añade una tarea que copie un archivo ficticio y notifique al handler \`Reiniciar apache\`. Define el handler correspondiente para reiniciar el servicio apache2.',
+          en: 'Write a complete playbook configuring apache on localhost. Add a task that copies a dummy file and notifies the handler \`Restart apache\`. Define the corresponding handler to restart the apache2 service.'
+        },
+        type: 'code',
+        goal: 'ansible-handlers',
+        initialCode: `---
+- name: Playbook con Handlers
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Copiar configuracion de puertos
+      copy:
+        content: "Listen 8080"
+        dest: /etc/apache2/ports.conf
+      notify: Reiniciar apache
+
+  handlers:
+    # Define el handler 'Reiniciar apache' que inicie apache2 en state=restarted aquí
+`
+      }
+    ]
+  }
+};

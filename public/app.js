@@ -1,7 +1,7 @@
 // dev-codigo — Frontend Lógica y Simuladores Interactivos
 'use strict';
 
-import { COURSES } from './courses.js';
+import { COURSES, CHEATSHEETS } from './courses.js';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -76,6 +76,9 @@ const state = {
   currentCourse: null,
   currentDay: 1,
   currentLevel: 'principiante', // 'principiante' | 'intermedio'
+  mode: 'academy',              // 'academy' | 'cheatsheet'
+  currentRecipeId: null,
+  coachMessages: [],
   // Estado del simulador de Terminal (Git / Ansible)
   fs: {},
   git: {
@@ -87,6 +90,7 @@ const state = {
   terminalHistory: [],
   historyIdx: -1
 };
+
 
 /* ── Sincronización y Sesión ──────────────────────────────────────────────── */
 function parseUserFromJWT() {
@@ -206,6 +210,19 @@ function renderCoursesGrid() {
 
 function selectCourse(courseId) {
   state.currentCourse = COURSES[courseId];
+  state.mode = 'academy';
+
+  const navModes = $('#nav-modes');
+  if (navModes) {
+    if (courseId === 'git' || courseId === 'ansible') {
+      navModes.style.display = 'flex';
+      $('#mode-academy')?.classList.add('active');
+      $('#mode-cheatsheet')?.classList.remove('active');
+    } else {
+      navModes.style.display = 'none';
+    }
+  }
+
   // Ir al primer día incompleto o al Día 1
   const completed = state.progress[courseId] || [];
   let dayToStart = 1;
@@ -233,6 +250,51 @@ function renderSidebar() {
   const sidebar = $('#sidebar');
   if (!sidebar || !state.currentCourse) return;
   const c = state.currentCourse;
+
+  // Si estamos en modo Chuletas / Cheatsheet
+  if (state.mode === 'cheatsheet') {
+    const cat = CHEATSHEETS[c.id];
+    if (!cat) return;
+
+    const recipesHTML = cat.recipes.map(r => {
+      const isActive = state.currentRecipeId === r.id;
+      const mark = '<i class="ph ph-terminal-window"></i>';
+      return `<button class="topic-item ${isActive ? 'active' : ''}" data-recipe-id="${r.id}">
+        <span class="topic-status">${mark}</span>
+        <span class="topic-name">${esc(r.title[state.lang])}</span>
+      </button>`;
+    }).join('');
+
+    sidebar.innerHTML = `
+      <button class="btn-back" id="btn-back-catalog">
+        <i class="ph ph-arrow-left"></i> ${state.lang === 'es' ? 'Catálogo de cursos' : 'Course catalog'}
+      </button>
+      <div class="sidebar-course">
+        <div class="course-icon-wrap">${c.icon}</div>
+        <span class="sidebar-course-title">${esc(cat.title[state.lang])}</span>
+      </div>
+      <div class="topic-list">${recipesHTML}</div>
+    `;
+
+    $('#btn-back-catalog', sidebar).addEventListener('click', () => {
+      state.currentCourse = null;
+      state.mode = 'academy';
+      const navModes = $('#nav-modes');
+      if (navModes) navModes.style.display = 'none';
+      $('#course-view').style.display = 'none';
+      $('#welcome-view').style.display = 'block';
+      const tourBtn = $('#btn-start-tour');
+      if (tourBtn) tourBtn.style.display = 'none';
+      renderCoursesGrid();
+    });
+
+    $$('.topic-item', sidebar).forEach(item => item.addEventListener('click', () => {
+      const recipe = cat.recipes.find(r => r.id === item.dataset.recipeId);
+      if (recipe) loadLesson(recipe);
+    }));
+    return;
+  }
+
   const completed = state.progress[c.id] || [];
   const levels = courseLevels();
   const lvlLabel = {
@@ -246,7 +308,7 @@ function renderSidebar() {
     </div>` : '';
 
   const topicsHTML = daysForLevel(state.currentLevel).map(d => {
-    const isActive = state.currentDay === d.day;
+    const isActive = state.currentDay === d.day && !state.currentRecipeId;
     const isDone = completed.includes(d.day);
     const mark = isDone ? '<i class="ph ph-check-circle"></i>' : '<i class="ph ph-circle"></i>';
     return `<button class="topic-item ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}" data-day="${d.day}">
@@ -269,6 +331,8 @@ function renderSidebar() {
 
   $('#btn-back-catalog', sidebar).addEventListener('click', () => {
     state.currentCourse = null;
+    const navModes = $('#nav-modes');
+    if (navModes) navModes.style.display = 'none';
     $('#course-view').style.display = 'none';
     $('#welcome-view').style.display = 'block';
     const tourBtn = $('#btn-start-tour');
@@ -552,17 +616,28 @@ function startTour() {
 }
 
 /* ── Cargar Lección ──────────────────────────────────────────────────────── */
-function loadLesson(dayNum) {
-  state.currentDay = dayNum;
+function loadLesson(lessonOrDayNum) {
+  let lesson;
+  let isCheatsheet = false;
 
-  const lesson = state.currentCourse.days.find(d => d.day === dayNum);
-  if (lesson) state.currentLevel = levelOf(lesson);
+  if (typeof lessonOrDayNum === 'number') {
+    state.currentDay = lessonOrDayNum;
+    state.currentRecipeId = null;
+    lesson = state.currentCourse.days.find(d => d.day === lessonOrDayNum);
+    if (lesson) state.currentLevel = levelOf(lesson);
+  } else {
+    // Es un objeto de receta de chuleta
+    lesson = lessonOrDayNum;
+    state.currentRecipeId = lesson.id;
+    isCheatsheet = true;
+  }
+
   renderSidebar();
 
   if (!lesson) return;
   
   // Render de cabecera de lección
-  $('#lesson-title').textContent = topicTitle(lesson);
+  $('#lesson-title').textContent = lesson.title[state.lang];
   
   // Render de teoría
   const theoryBox = $('#theory-content');
@@ -699,10 +774,13 @@ function loadLesson(dayNum) {
     updateVariableInspector();
   }
   
-  // Auto-tour para nuevos usuarios en el día 1
-  if (!localStorage.getItem('dc-tour-seen') && dayNum === 1) {
+  // Auto-tour para nuevos usuarios en el día 1 (solo en modo academia)
+  if (!isCheatsheet && !localStorage.getItem('dc-tour-seen') && lessonOrDayNum === 1) {
     setTimeout(startTour, 500);
   }
+
+  // Resetear el chat del AI Coach al cargar tema o receta
+  resetCoachChat();
 }
 
 /* ── Simulador de Terminal (Git / Ansible Shell) ─────────────────────────── */
@@ -1456,7 +1534,10 @@ function translateUI() {
   const syncBanner = $('#sync-banner');
   if (syncBanner) {
     syncBanner.querySelector('.sync-banner-text').textContent = t.syncBanner;
-    syncBanner.querySelector('button').textContent = t.signInGithub;
+    const syncLink = syncBanner.querySelector('.btn-github');
+    if (syncLink) {
+      syncLink.innerHTML = `<i class="ph ph-github-logo"></i> ${t.signInGithub}`;
+    }
   }
   
   // Botón de Login/User
@@ -1552,6 +1633,25 @@ async function init() {
   
   // Traducir y pintar
   setLanguage(state.lang);
+
+  // ── Botones de modo Academia / Chuletas ──
+  $('#mode-academy')?.addEventListener('click', () => setMode('academy'));
+  $('#mode-cheatsheet')?.addEventListener('click', () => setMode('cheatsheet'));
+
+  // ── Botones del AI Coach ──
+  $('#btn-coach-analyze')?.addEventListener('click', analyzeCodeWithCoach);
+
+  const coachSendBtn = $('#btn-coach-send');
+  const coachInput = $('#coach-chat-input');
+
+  coachSendBtn?.addEventListener('click', () => sendChatMessageToCoach());
+
+  coachInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChatMessageToCoach();
+    }
+  });
 }
 
 function showToast(msg) {
@@ -1561,6 +1661,152 @@ function showToast(msg) {
   setTimeout(() => {
     toast.classList.remove('show');
   }, 3000);
+}
+
+/* ── Funciones de Control del Modo Chuletas y AI Coach ────────────────────── */
+
+function setMode(mode) {
+  state.mode = mode;
+  const btnAcademy = $('#mode-academy');
+  const btnCheatsheet = $('#mode-cheatsheet');
+  
+  if (mode === 'academy') {
+    btnAcademy?.classList.add('active');
+    btnCheatsheet?.classList.remove('active');
+    loadLesson(state.currentDay);
+  } else {
+    btnCheatsheet?.classList.add('active');
+    btnAcademy?.classList.remove('active');
+    renderSidebar();
+    
+    // Cargar la primera receta del catálogo
+    const courseId = state.currentCourse.id;
+    const cat = CHEATSHEETS[courseId];
+    if (cat && cat.recipes.length > 0) {
+      loadLesson(cat.recipes[0]);
+    }
+  }
+}
+
+function resetCoachChat() {
+  state.coachMessages = [];
+  const chatArea = $('#coach-chat-area');
+  if (chatArea) {
+    chatArea.innerHTML = `
+      <div class="chat-bubble assistant">
+        ¡Hola! Soy tu mentor personal de Git y Ansible. Puedo analizar tu código del editor o ayudarte a resolver dudas sobre comandos. ¡Pregúntame lo que quieras!
+      </div>
+    `;
+  }
+}
+
+async function analyzeCodeWithCoach() {
+  const code = $('#editor-textarea')?.value || '';
+  const prompt = state.currentCourse?.id === 'ansible'
+    ? 'Por favor, analiza mi playbook de Ansible actual para ver si cumple con las mejores prácticas y tiene buena sintaxis.'
+    : 'Por favor, analiza mi historial de comandos de Git ejecutados en la consola y dime si el flujo es correcto o qué mejoras sugieres.';
+  
+  await sendChatMessageToCoach(prompt);
+}
+
+async function sendChatMessageToCoach(customText = null) {
+  const input = $('#coach-chat-input');
+  const text = (customText || input?.value || '').trim();
+  if (!text) return;
+
+  if (!customText && input) {
+    input.value = '';
+  }
+
+  const chatArea = $('#coach-chat-area');
+  const btnSend = $('#btn-coach-send');
+  const btnAnalyze = $('#btn-coach-analyze');
+  const statusLabel = $('#coach-status');
+
+  // Agregar mensaje del usuario en pantalla e historial
+  state.coachMessages.push({ role: 'user', content: text });
+  
+  const userBubble = document.createElement('div');
+  userBubble.className = 'chat-bubble user';
+  userBubble.textContent = text;
+  if (chatArea) {
+    chatArea.appendChild(userBubble);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+
+  // Deshabilitar controles
+  if (input) input.disabled = true;
+  if (btnSend) btnSend.disabled = true;
+  if (btnAnalyze) btnAnalyze.disabled = true;
+  if (statusLabel) statusLabel.textContent = 'Pensando...';
+
+  // Recolectar contexto
+  const code = $('#editor-textarea')?.value || '';
+  const terminalLines = $$('.terminal-line');
+  const terminalHistory = terminalLines
+    .map(line => line.textContent.trim())
+    .filter(t => t.startsWith('$'))
+    .map(t => t.slice(1).trim());
+
+  try {
+    const response = await fetch('/api/coach', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        language: state.currentCourse?.id || 'general',
+        code: code,
+        terminalHistory: terminalHistory,
+        messages: state.coachMessages
+      })
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+
+    state.coachMessages.push({ role: 'assistant', content: data.content });
+    appendAssistantMessageWithTypewriter(data.content);
+
+  } catch (err) {
+    console.error('[AI Coach Chat Error]', err);
+    const errorBubble = document.createElement('div');
+    errorBubble.className = 'chat-bubble assistant';
+    errorBubble.innerHTML = `<span style="color:var(--red)">Error al conectar con el mentor de IA. Por favor, asegúrate de iniciar el backend local o configurar las claves API.</span>`;
+    if (chatArea) {
+      chatArea.appendChild(errorBubble);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+  } finally {
+    if (input) {
+      input.disabled = false;
+      input.focus();
+    }
+    if (btnSend) btnSend.disabled = false;
+    if (btnAnalyze) btnAnalyze.disabled = false;
+    if (statusLabel) statusLabel.textContent = 'Listo para ayudarte';
+  }
+}
+
+function appendAssistantMessageWithTypewriter(content) {
+  const chatArea = $('#coach-chat-area');
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble assistant';
+  if (chatArea) {
+    chatArea.appendChild(bubble);
+  }
+
+  const htmlContent = renderMarkdown(content);
+  let idx = 0;
+  
+  const interval = setInterval(() => {
+    bubble.innerHTML = htmlContent.slice(0, idx);
+    idx += 5;
+    if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+    if (idx >= htmlContent.length) {
+      bubble.innerHTML = htmlContent;
+      clearInterval(interval);
+      if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+    }
+  }, 12);
 }
 
 // Iniciar aplicación
