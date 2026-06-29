@@ -78,7 +78,7 @@ const state = {
   currentLevel: 'principiante', // 'principiante' | 'intermedio'
   mode: 'academy',              // 'academy' | 'cheatsheet'
   currentRecipeId: null,
-  coachMessages: [],
+
   // Estado del simulador de Terminal (Git / Ansible)
   fs: {},
   git: {
@@ -779,8 +779,6 @@ function loadLesson(lessonOrDayNum) {
     setTimeout(startTour, 500);
   }
 
-  // Resetear el chat del AI Coach al cargar tema o receta
-  resetCoachChat();
 }
 
 /* ── Simulador de Terminal (Git / Ansible Shell) ─────────────────────────── */
@@ -1638,20 +1636,7 @@ async function init() {
   $('#mode-academy')?.addEventListener('click', () => setMode('academy'));
   $('#mode-cheatsheet')?.addEventListener('click', () => setMode('cheatsheet'));
 
-  // ── Botones del AI Coach ──
-  $('#btn-coach-analyze')?.addEventListener('click', analyzeCodeWithCoach);
 
-  const coachSendBtn = $('#btn-coach-send');
-  const coachInput = $('#coach-chat-input');
-
-  coachSendBtn?.addEventListener('click', () => sendChatMessageToCoach());
-
-  coachInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendChatMessageToCoach();
-    }
-  });
 }
 
 function showToast(msg) {
@@ -1688,126 +1673,7 @@ function setMode(mode) {
   }
 }
 
-function resetCoachChat() {
-  state.coachMessages = [];
-  const chatArea = $('#coach-chat-area');
-  if (chatArea) {
-    chatArea.innerHTML = `
-      <div class="chat-bubble assistant">
-        ¡Hola! Soy tu mentor personal de Git y Ansible. Puedo analizar tu código del editor o ayudarte a resolver dudas sobre comandos. ¡Pregúntame lo que quieras!
-      </div>
-    `;
-  }
-}
 
-async function analyzeCodeWithCoach() {
-  const code = $('#editor-textarea')?.value || '';
-  const prompt = state.currentCourse?.id === 'ansible'
-    ? 'Por favor, analiza mi playbook de Ansible actual para ver si cumple con las mejores prácticas y tiene buena sintaxis.'
-    : 'Por favor, analiza mi historial de comandos de Git ejecutados en la consola y dime si el flujo es correcto o qué mejoras sugieres.';
-  
-  await sendChatMessageToCoach(prompt);
-}
-
-async function sendChatMessageToCoach(customText = null) {
-  const input = $('#coach-chat-input');
-  const text = (customText || input?.value || '').trim();
-  if (!text) return;
-
-  if (!customText && input) {
-    input.value = '';
-  }
-
-  const chatArea = $('#coach-chat-area');
-  const btnSend = $('#btn-coach-send');
-  const btnAnalyze = $('#btn-coach-analyze');
-  const statusLabel = $('#coach-status');
-
-  // Agregar mensaje del usuario en pantalla e historial
-  state.coachMessages.push({ role: 'user', content: text });
-  
-  const userBubble = document.createElement('div');
-  userBubble.className = 'chat-bubble user';
-  userBubble.textContent = text;
-  if (chatArea) {
-    chatArea.appendChild(userBubble);
-    chatArea.scrollTop = chatArea.scrollHeight;
-  }
-
-  // Deshabilitar controles
-  if (input) input.disabled = true;
-  if (btnSend) btnSend.disabled = true;
-  if (btnAnalyze) btnAnalyze.disabled = true;
-  if (statusLabel) statusLabel.textContent = 'Pensando...';
-
-  // Recolectar contexto
-  const code = $('#editor-textarea')?.value || '';
-  const terminalLines = $$('.terminal-line');
-  const terminalHistory = terminalLines
-    .map(line => line.textContent.trim())
-    .filter(t => t.startsWith('$'))
-    .map(t => t.slice(1).trim());
-
-  try {
-    const response = await fetch('/api/coach', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        language: state.currentCourse?.id || 'general',
-        code: code,
-        terminalHistory: terminalHistory,
-        messages: state.coachMessages
-      })
-    });
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-
-    state.coachMessages.push({ role: 'assistant', content: data.content });
-    appendAssistantMessageWithTypewriter(data.content);
-
-  } catch (err) {
-    console.error('[AI Coach Chat Error]', err);
-    const errorBubble = document.createElement('div');
-    errorBubble.className = 'chat-bubble assistant';
-    errorBubble.innerHTML = `<span style="color:var(--red)">Error al conectar con el mentor de IA. Por favor, asegúrate de iniciar el backend local o configurar las claves API.</span>`;
-    if (chatArea) {
-      chatArea.appendChild(errorBubble);
-      chatArea.scrollTop = chatArea.scrollHeight;
-    }
-  } finally {
-    if (input) {
-      input.disabled = false;
-      input.focus();
-    }
-    if (btnSend) btnSend.disabled = false;
-    if (btnAnalyze) btnAnalyze.disabled = false;
-    if (statusLabel) statusLabel.textContent = 'Listo para ayudarte';
-  }
-}
-
-function appendAssistantMessageWithTypewriter(content) {
-  const chatArea = $('#coach-chat-area');
-  const bubble = document.createElement('div');
-  bubble.className = 'chat-bubble assistant';
-  if (chatArea) {
-    chatArea.appendChild(bubble);
-  }
-
-  const htmlContent = renderMarkdown(content);
-  let idx = 0;
-  
-  const interval = setInterval(() => {
-    bubble.innerHTML = htmlContent.slice(0, idx);
-    idx += 5;
-    if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
-    if (idx >= htmlContent.length) {
-      bubble.innerHTML = htmlContent;
-      clearInterval(interval);
-      if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
-    }
-  }, 12);
-}
 
 // Iniciar aplicación
 document.addEventListener('DOMContentLoaded', init);
